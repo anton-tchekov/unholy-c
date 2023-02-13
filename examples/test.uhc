@@ -1,0 +1,110 @@
+
+
+fn string_test()
+{
+	var string_test, string2_test, string3_test;
+
+	string_test = "hello"
+				  "world";
+
+	string2_test = "lulz"
+					"hello"
+					"world";
+
+	string3_test = "ABCD";
+
+	return 0;
+}
+
+/* HEAP */
+fn alloc(bytes)
+{
+	return 0;
+}
+
+fn free(addr)
+{
+
+}
+
+/* UTIL */
+fn in_range(val, min, max)
+{
+	if lt(val, min)
+	{
+		return 0;
+	}
+
+	if gt(val, max)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+/* ARRAY */
+fn array_new(length, elem_size)
+{
+	var addr;
+	addr = alloc(add(mul(length, elem_size), 12));
+	w32(addr, length);
+	w32(add(addr, 4), elem_size);
+	return addr;
+}
+
+fn array_access(array, index)
+{
+	var length, elem_size;
+	length = r32(array);
+	elem_size = r32(add(array, 4));
+	if hs(index, length)
+	{
+		return 0;
+	}
+
+	return add(add(array, 8), mul(index, elem_size));
+}
+
+fn array_destroy(array)
+{
+	free(array);
+}
+
+/* VECTOR */
+fn vector_new(init_size, elem_size)
+{
+
+}
+
+fn vector_length(vector)
+{
+}
+
+fn vector_insert(vector, value)
+{
+}
+
+fn vector_remove(vector, index, count)
+{
+}
+
+fn vector_get(index)
+{
+}
+
+fn vector_clear()
+{
+}
+
+fn vector_delete(vector)
+{
+}
+
+fn main()
+{
+	var vec;
+	vec = vector_new(10, 4);
+	vector_delete(vec);
+	return 0;
+}

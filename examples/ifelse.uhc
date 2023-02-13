@@ -1,0 +1,17 @@
+fn main()
+{
+	var num;
+	num = 42;
+	if eq(num, 69)
+	{
+		println("nice");
+	}
+	elif eq(num, 42)
+	{
+		println("the meaning of life");
+	}
+	else
+	{
+		println("something else");
+	}
+}
