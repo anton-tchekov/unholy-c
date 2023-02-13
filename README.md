@@ -2,7 +2,7 @@
 
 ## Variables
 
-Local variables can be only be declared at the beginning of every block with the `var` keyword.
+Local variables can be only be declared at the beginning of every function with the `var` keyword.
 Every local variable is 32-bit in size.
 Variables can not be initialized during declaration.
 
@@ -11,6 +11,7 @@ Additionally, the first character can not be a number.
 
 Example:
 
+    fn test()
     {
         var value, number;
         var count;
@@ -35,16 +36,16 @@ Example:
 
     x = add(x, 1);
 
-## Builtin Functions
+## Built-in Functions
 
 ### Basic Integer Arithmetic
 `add`, `sub`, `mul`, `div`, `mod`
 
 ### Equality
-|      |           |
-|------|-----------|
-| `eq` | Equal     |
-| `ne` | Not Equal |
+| C Operator |      |           |
+|------------|------|-----------|
+|    `==`    | `eq` | Equal     |
+|    `!=`    | `ne` | Not Equal |
 
 ### Integer Comparison
 
@@ -52,30 +53,30 @@ There are two sets of integer comparison functions for signed
 and unsigned numbers.
 
 ### Unsigned
-| Mnemonic | Meaning          | Symbol |
-|----------|------------------|--------|
-|    hi    | Higher           |   >    |
-|    hs    | Higher or Same   |   >=   |
-|    ls    | Lower or Same    |   <=   |
-|    lo    | Lower            |   <    |
+| C Operator | Mnemonic | Meaning          |
+|------------|----------|------------------|
+|    `>`     |   `hi`   | Higher           |
+|    `>=`    |   `hs`   | Higher or Same   |
+|    `<=`    |   `ls`   | Lower or Same    |
+|    `<`     |   `lo`   | Lower            |
 
 ### Signed
-| Mnemonic | Meaning          | Symbol |
-|----------|------------------|--------|
-|    gt    | Greater Than     |   >    |
-|    ge    | Greater or Equal |   >=   |
-|    le    | Less or Equal    |   <=   |
-|    lt    | Less Than        |   <    |
+| C Operator | Mnemonic | Meaning          |
+|------------|----------|------------------|
+|    `>`     |   `gt`   | Greater Than     |
+|    `>=`    |   `ge`   | Greater or Equal |
+|    `<=`    |   `le`   | Less or Equal    |
+|    `<`     |   `lt`   | Less Than        |
 
 ### Bitwise operators
-|       |                      |
-|-------|----------------------|
-| `or`  | Bitwise OR           |
-| `and` | Bitwise AND          |
-| `inv` | Bitwise NOT          |
-| `xor` | Bitwise Exclusive OR |
-| `shl` | Bitwise Shift Left   |
-| `shr` | Bitwise Shift Right  |
+| C Operator | Function |                      |
+|------------|----------|----------------------|
+|    `|`     |  `or`    | Bitwise OR           |
+|    `&`     |  `and`   | Bitwise AND          |
+|    `~`     |  `inv`   | Bitwise NOT          |
+|    `^`     |  `xor`   | Bitwise Exclusive OR |
+|    `<<`    |  `shl`   | Bitwise Shift Left   |
+|    `>>`    |  `shr`   | Bitwise Shift Right  |
 
 ### Boolean operators
 `not`: if argument 0, returns 1, else returns 0
