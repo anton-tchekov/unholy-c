@@ -34,6 +34,8 @@ Doing `var1 = var2` simply copies the bits from var2 into var1.
 
 ## Comments
 
+Only multiline comments are supported:
+
     /* This is a comment */
 
 ## Expressions
@@ -102,42 +104,42 @@ and unsigned numbers.
 
 ### Floating Point
 
-|         |                  |
-|---------|------------------|
-| `itf`   | Int to float     |
-| `fti`   | Float to int     |
-| `addf`  | Add              |
-| `subf`  | Subtract         |
-| `mulf`  | Multiply         |
-| `divf`  | Divide           |
-| `modf`  | Modulo           |
-| `ltf`   | Less Than        |
-| `gtf`   | Greater Than     |
-| `lef`   | Less or Equal    |
-| `gef`   | Greater or Equal |
-| `absf`  | Absolute value   |
-| `ceil`  | Ceiling function |
-| `floor` | Floor function   |
+| Function | Meaning          |
+|----------|------------------|
+| `itf`    | Int to float     |
+| `fti`    | Float to int     |
+| `addf`   | Add              |
+| `subf`   | Subtract         |
+| `mulf`   | Multiply         |
+| `divf`   | Divide           |
+| `modf`   | Modulo           |
+| `ltf`    | Less Than        |
+| `gtf`    | Greater Than     |
+| `lef`    | Less or Equal    |
+| `gef`    | Greater or Equal |
+| `absf`   | Absolute value   |
+| `ceil`   | Ceiling function |
+| `floor`  | Floor function   |
 
 ### Math
 
-|       |
-|-------|
-| sin   |
-| cos   |
-| tan   |
-| asin  |
-| acos  |
-| atan  |
-| atan2 |
-| sinh  |
-| cosh  |
-| tanh  |
-| exp   |
-| log   |
-| log10 |
-| pow   |
-| sqrt  |
+| Function |
+|----------|
+| `sin`    | Sine
+| `cos`    | Cosine
+| `tan`    |
+| `asin`   |
+| `acos`   |
+| `atan`   |
+| `atan2`  |
+| `sinh`   | hyperbolic sine
+| `cosh`   | hyperbolic cosine
+| `tanh`   | hyperbolic tangent
+| `exp`    |
+| `log`    |
+| `log10`  |
+| `pow`    |
+| `sqrt`   | Square root
 
 ### Characters
 
@@ -205,16 +207,9 @@ Example:
 
 ##### jump Statement
 
-The `jump` statement is in some ways similar to the classic `switch-case`,
-with some limitations.
+The `jump` statement is similar to the classic `switch-case`, but with a few key differences. First, there are no case labels. The result of the expression at the top will be evaluated, and interpreted as a unsigned integer. It will then jump to the corresponding block, numbered starting from zero. This enables the jump statement to **always** be compiled into a jump table.
 
-First, there are no case labels. The result of the expression at the top
-will be evaluated, and interpreted as a unsigned integer.
-It will then jump to the corresponding block, numbered starting from zero.
-This enables the jump statement to ALWAYS be compiled into a jump table.
-
-For example, the expression for a `jump` statement for the inputs [ 2, 4, 6, 8, 10 ]
-would look something like this:
+For example, the expression for a `jump` statement for the inputs [ 2, 4, 6, 8, 10 ] would look something like this:
 
     sub(shr(input, 1), 1)
 
@@ -228,7 +223,7 @@ The division by two, and subtraction of one is done to map the inputs to [ 0..n-
 
 If the input cannot be mapped to [ 0..n-1 ], if-elif-else should be used instead.
 
-There is no `default` branch, that can be done with an `if` beforehand.
+There is no `default` branch, since that can be done with an `if` beforehand.
 The arrow operator after a block denotes fall-through behaviour.
 
 Example (notice the square brackets):
@@ -251,14 +246,15 @@ Example (notice the square brackets):
 
 # Development
 
-# KNOWN BUGS
+## Known Bugs
 - Function parameter/Arguments trailing comma
 - String literals comment inbetween
 
-# UNTESTED
+## Untested
 - Break and continue
+- Function with no return actually 0?
 
-# TODO
+## TODO
 
 - Implement jump statement
 - Global variables/constants
