@@ -1,5 +1,7 @@
 # Unholy C Language Documentation
 
+* [ It's a reference to the programming language Holy C of Temple OS ] *
+
 ## Variables
 
 Local variables can be only be declared at the beginning of a function with the `var` keyword. Every local variable is 32-bit in size. Variables can not be initialized during declaration.
@@ -14,6 +16,8 @@ Example:
         var value, number;
         var count;
     }
+
+Global variables are not supported.
 
 ## Constants
 
@@ -31,6 +35,22 @@ The meaning of the bits in a variable is defined only by what
 **you** (the programmer) do with it.
 
 Doing `var1 = var2` simply copies the bits from var2 into var1.
+
+However, there are typed literals.
+
+- Integer:
+	- Decimal: -25, 0, 1, 77, etc.
+	- Hexadecimal: 0xFF, 0xAA, etc.
+	- Binary: 0b1010, etc.
+
+- Floating Point: -42.57, 3.14, etc.
+
+- Boolean: true, false
+
+- Character: 'A', '7', '\n', '\\', '!', etc.
+
+- String (char array): "Hello World!"
+	- Note: The string will be placed in the programs readonly data area. In an expression, it will evaluate to a pointer to the first character of the string. The string is terminated by a '\0' character.
 
 ## Comments
 
@@ -104,67 +124,70 @@ and unsigned numbers.
 
 ### Floating Point
 
-| Function | Meaning          |
-|----------|------------------|
-| `itf`    | Int to float     |
-| `fti`    | Float to int     |
-| `addf`   | Add              |
-| `subf`   | Subtract         |
-| `mulf`   | Multiply         |
-| `divf`   | Divide           |
-| `modf`   | Modulo           |
-| `ltf`    | Less Than        |
-| `gtf`    | Greater Than     |
-| `lef`    | Less or Equal    |
-| `gef`    | Greater or Equal |
-| `absf`   | Absolute value   |
-| `ceil`   | Ceiling function |
-| `floor`  | Floor function   |
+| C Operator | Function | Meaning          |
+|------------|----------|------------------|
+|            | `itf`    | Int to float     |
+|            | `fti`    | Float to int     |
+| `+`        | `addf`   | Add              |
+| `-`        | `subf`   | Subtract         |
+| `*`        | `mulf`   | Multiply         |
+| `/`        | `divf`   | Divide           |
+|            | `modf`   | Modulo           |
+| `>`        | `gtf`    | Greater Than     |
+| `>=`       | `gef`    | Greater or Equal |
+| `<=`       | `lef`    | Less or Equal    |
+| `<`        | `ltf`    | Less Than        |
+|            | `absf`   | Absolute value   |
+|            | `ceil`   | Ceiling function |
+|            | `floor`  | Floor function   |
+|            | `round`  | Round function   |
 
 ### Math
 
+Exactly the same as in `<math.h>`
+
 | Function |
 |----------|
-| `sin`    | Sine
-| `cos`    | Cosine
+| `sin`    |
+| `cos`    |
 | `tan`    |
 | `asin`   |
 | `acos`   |
 | `atan`   |
 | `atan2`  |
-| `sinh`   | hyperbolic sine
-| `cosh`   | hyperbolic cosine
-| `tanh`   | hyperbolic tangent
+| `sinh`   |
+| `cosh`   |
+| `tanh`   |
 | `exp`    |
 | `log`    |
 | `log10`  |
 | `pow`    |
-| `sqrt`   | Square root
+| `sqrt`   |
 
 ### Characters
 
-|          |
-|----------|
-| isupper  |
-| islower  |
-| isdigit  |
-| isalpha  |
-| isalnum  |
-| iscntrl  |
-| isgraph  |
-| isprint  |
-| ispunct  |
-| isspace  |
-| isxdigit |
-| tolower  |
-| toupper  |
+| Function   | Meaning                            |
+|------------|------------------------------------|
+| `isupper`  | Is uppercase? (A-Z)                |
+| `islower`  | Is lowercase? (a-z)                |
+| `isdigit`  | Is digit? (0-9)                    |
+| `isalpha`  | Is in alphabet? (a-z, A-Z)         |
+| `isalnum`  | Is Alphanumeric (0-9, a-z, A-Z)    |
+| `iscntrl`  | Is control character?
+| `isgraph`  | Is graphical?
+| `isprint`  | Is printable?
+| `ispunct`  | Is punctuation?
+| `isspace`  | Is whitespace?
+| `isxdigit` | Is hexadecimal? (0-9, a-f, A-F)    |
+| `tolower`  | If uppercase, convert to lowercase |
+| `toupper`  | If lowercase, convert to uppercase |
 
 ### Random
 
-|         |               |
-|---------|---------------|
-| `rand`  | Random Number |
-| `srand` | Set RNG Seed  |
+| Function | Meaning       |
+|----------|---------------|
+| `rand`   | Random Number |
+| `srand`  | Set RNG Seed  |
 
 ## Functions
 
@@ -187,7 +210,27 @@ Curly braces are mandatory for all control flow contstructs.
 
 ### Loops
 
-There are only two types of loops: while and do..while
+There are three types of loops:
+
+- **top-controlled**
+
+    i = 1;
+    while le(i, 10) {
+        print_number(i);
+        i = add(i, 1);
+	}
+
+- **bottom-controlled**
+
+    do {
+        c = get_char();
+    } while ne(c, '\n');
+
+- **infinite**
+
+    loop {
+        /* Main Loop */
+    }
 
 break and continue are supported. There is no goto.
 
@@ -205,7 +248,7 @@ Example:
         printf("Your number %d\n", number);
     }
 
-##### jump Statement
+### jump Statement
 
 The `jump` statement is similar to the classic `switch-case`, but with a few key differences. First, there are no case labels. The result of the expression at the top will be evaluated, and interpreted as a unsigned integer. It will then jump to the corresponding block, numbered starting from zero. This enables the jump statement to **always** be compiled into a jump table.
 
@@ -244,6 +287,7 @@ Example (notice the square brackets):
     ]
 
 
+
 # Development
 
 ## Known Bugs
@@ -255,10 +299,16 @@ Example (notice the square brackets):
 - Function with no return actually 0?
 
 ## TODO
-
-- Implement jump statement
-- Global variables/constants
-- Safe printf
+- finish docs for char functions
+- add memory access functions
+- add int abs function
+- add float round function
+- booleans
+- infinite loop
+- jump statement
+- global constants
+- i/o and file access
+- printf
 	%s   String
 	%c   Character
 
@@ -270,8 +320,8 @@ Example (notice the square brackets):
 	%b   Binary
 		Optional pad left with zero or space
 
-- Memory Access / Arrays
+- Add Code Examples
 
-- Cleanup
+- Code Cleanup
 - Automated testing
-
+- Optimizations
