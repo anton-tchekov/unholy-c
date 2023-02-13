@@ -1,6 +1,6 @@
 # Unholy C Language Documentation
 
-* [ It's a reference to the programming language Holy C of Temple OS ] *
+- *[ It's a reference to the programming language Holy C of Temple OS ]*
 
 ## Variables
 
@@ -9,7 +9,7 @@ Local variables can be only be declared at the beginning of a function with the 
 Variable names can only contain with letters, numbers or underscores.
 Additionally, the first character can not be a number.
 
-Example:
+**Example:**
 
     fn test()
     {
@@ -23,7 +23,7 @@ Global variables are not supported.
 
 Global numeric constants must be defined at the beginning of the file, before all functions.
 
-Example:
+**Example:**
 
     const ANSWER = 42;
     const PI = 3.1416;
@@ -39,18 +39,18 @@ Doing `var1 = var2` simply copies the bits from var2 into var1.
 However, there are typed literals.
 
 - Integer:
-	- Decimal: -25, 0, 1, 77, etc.
-	- Hexadecimal: 0xFF, 0xAA, etc.
-	- Binary: 0b1010, etc.
+	- Decimal: `-25`, `0`, `1`, `77`, etc.
+	- Hexadecimal: `0xFF`, `0xAA`, etc.
+	- Binary: `0b1010`, etc.
 
-- Floating Point: -42.57, 3.14, etc.
+- Floating Point: `-42.57`, `3.14`, etc.
 
-- Boolean: true, false
+- Boolean: `true`, `false`
 
-- Character: 'A', '7', '\n', '\\', '!', etc.
+- Character: `'A'`, `'7'`, `'\n'`, `'\\'`, `'!'`, etc.
 
-- String (char array): "Hello World!"
-	- Note: The string will be placed in the programs readonly data area. In an expression, it will evaluate to a pointer to the first character of the string. The string is terminated by a '\0' character.
+- String (char array): `"Hello World!"`
+	- Note: The string will be placed in the programs readonly data area. In an expression, it will evaluate to a pointer to the first character of the string. The string is terminated by a `'\0'` character.
 
 ## Comments
 
@@ -63,9 +63,9 @@ Only multiline comments are supported:
 Expressions, used for example on the right hand side of an assignment,
 consist only out of function calls.
 
-Example:
+**Example:**
 
-	/* x =  */
+	/* x = x^2 + x + 1 */
     y = add(add(mul(x, x), x), 1);
 
 ## Built-in Functions
@@ -214,25 +214,31 @@ There are three types of loops:
 
 - **top-controlled**
 
+```
     i = 1;
     while le(i, 10) {
         print_number(i);
         i = add(i, 1);
-	}
+    }
+```
 
 - **bottom-controlled**
 
+```
     do {
         c = get_char();
     } while ne(c, '\n');
+```
 
 - **infinite**
 
+```
     loop {
         /* Main Loop */
     }
+```
 
-break and continue are supported. There is no goto.
+`break;` and `continue;` statements are supported. There is no goto.
 
 ### if-elif-else Branch
 
