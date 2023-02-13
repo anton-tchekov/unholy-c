@@ -2,9 +2,7 @@
 
 ## Variables
 
-Local variables can be only be declared at the beginning of every function with the `var` keyword.
-Every local variable is 32-bit in size.
-Variables can not be initialized during declaration.
+Local variables can be only be declared at the beginning of a function with the `var` keyword. Every local variable is 32-bit in size. Variables can not be initialized during declaration.
 
 Variable names can only contain with letters, numbers or underscores.
 Additionally, the first character can not be a number.
@@ -17,7 +15,14 @@ Example:
         var count;
     }
 
-Global variables are also supported.
+## Constants
+
+Global numeric constants must be defined at the beginning of the file, before all functions.
+
+Example:
+
+    const ANSWER = 42;
+    const PI = 3.1416;
 
 ## Types
 
@@ -27,6 +32,10 @@ YOU (the programmer) do with it.
 
 Doing `var1 = var2` simply copies the bits from var2 into var1.
 
+## Comments
+
+    /* This is a comment */
+
 ## Expressions
 
 Expressions, used for example on the right hand side of an assignment,
@@ -34,7 +43,8 @@ consist only out of function calls.
 
 Example:
 
-    x = add(x, 1);
+	/* x =  */
+    y = add(add(mul(x, x), x), 1);
 
 ## Built-in Functions
 
@@ -234,6 +244,10 @@ Example (notice the square brackets):
 
 # KNOWN BUGS
 - Function parameter/Arguments trailing comma
+- String literals comment inbetween
+
+# UNTESTED
+- Break and continue
 
 # TODO
 
