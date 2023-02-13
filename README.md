@@ -26,9 +26,9 @@ Example:
 
 ## Types
 
-There are NO types (and no type safety):
+There are **no** types (and no type safety):
 The meaning of the bits in a variable is defined only by what
-YOU (the programmer) do with it.
+**you** (the programmer) do with it.
 
 Doing `var1 = var2` simply copies the bits from var2 into var1.
 
@@ -49,13 +49,20 @@ Example:
 ## Built-in Functions
 
 ### Basic Integer Arithmetic
-`add`, `sub`, `mul`, `div`, `mod`
+| C Operator | Function |
+|------------|----------|
+| `+`        | `add`    |
+| `-`        | `sub`    |
+| `*`        | `mul`    |
+| `/`        | `div`    |
+| `%`        | `mod`    |
+|            | `abs`    |
 
 ### Equality
-| C Operator |      |           |
-|------------|------|-----------|
-|    `==`    | `eq` | Equal     |
-|    `!=`    | `ne` | Not Equal |
+| C Operator | Function | Meaning   |
+|------------|----------|-----------|
+| `==`       | `eq`     | Equal     |
+| `!=`       | `ne`     | Not Equal |
 
 ### Integer Comparison
 
@@ -63,33 +70,35 @@ There are two sets of integer comparison functions for signed
 and unsigned numbers.
 
 ### Unsigned
-| C Operator | Mnemonic | Meaning          |
+| C Operator | Function | Meaning          |
 |------------|----------|------------------|
-|    `>`     |   `hi`   | Higher           |
-|    `>=`    |   `hs`   | Higher or Same   |
-|    `<=`    |   `ls`   | Lower or Same    |
-|    `<`     |   `lo`   | Lower            |
+| `>`        | `hi`     | Higher           |
+| `>=`       | `hs`     | Higher or Same   |
+| `<=`       | `ls`     | Lower or Same    |
+| `<`        | `lo`     | Lower            |
 
 ### Signed
-| C Operator | Mnemonic | Meaning          |
+| C Operator | Function | Meaning          |
 |------------|----------|------------------|
-|    `>`     |   `gt`   | Greater Than     |
-|    `>=`    |   `ge`   | Greater or Equal |
-|    `<=`    |   `le`   | Less or Equal    |
-|    `<`     |   `lt`   | Less Than        |
+| `>`        | `gt`     | Greater Than     |
+| `>=`       | `ge`     | Greater or Equal |
+| `<=`       | `le`     | Less or Equal    |
+| `<`        | `lt`     | Less Than        |
 
 ### Bitwise operators
-| C Operator | Function |                      |
+| C Operator | Function | Meaning              |
 |------------|----------|----------------------|
-|    `|`     |  `or`    | Bitwise OR           |
-|    `&`     |  `and`   | Bitwise AND          |
-|    `~`     |  `inv`   | Bitwise NOT          |
-|    `^`     |  `xor`   | Bitwise Exclusive OR |
-|    `<<`    |  `shl`   | Bitwise Shift Left   |
-|    `>>`    |  `shr`   | Bitwise Shift Right  |
+| `|`        | `or`     | Bitwise OR           |
+| `&`        | `and`    | Bitwise AND          |
+| `~`        | `inv`    | Bitwise NOT          |
+| `^`        | `xor`    | Bitwise Exclusive OR |
+| `<<`       | `shl`    | Bitwise Shift Left   |
+| `>>`       | `shr`    | Bitwise Shift Right  |
 
 ### Boolean operators
-`not`: if argument 0, returns 1, else returns 0
+| C Operator | Function | Meaning                                  |
+|------------|----------|------------------------------------------|
+| `!`        | `not`    | If argument 0, returns 1, else returns 0 |
 
 ### Floating Point
 
