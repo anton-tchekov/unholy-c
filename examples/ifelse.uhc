@@ -1,17 +1,27 @@
+fn test(aaa bawe)
+{
+	if aaa
+	{
+
+	}
+	elif bawe
+	{
+		return;
+	}
+}
+
 fn main()
 {
+	var aa;
 	var num;
 	num = 42;
-	if eq(num, 69)
-	{
+	if eq(num, 69,) {
 		println("nice");
 	}
-	elif eq(num, 42)
-	{
+	elif eq(num, 42) {
 		println("the meaning of life");
 	}
-	else
-	{
+	else {
 		println("something else");
 	}
 }

@@ -331,7 +331,7 @@ static i8 _tokenizer_char_literal(void)
 	char c;
 
 	_tokenizer_advance();
-	return_if(_tokenizer_char(&v));
+	RETURN_IF(_tokenizer_char(&v));
 	if(v == '\'')
 	{
 		TRACE(ERROR_UNEXPECTED_CHARACTER);
@@ -359,7 +359,7 @@ static i8 _tokenizer_string_literal(void)
 	{
 		while(_tokenizer_advance() != '\"')
 		{
-			return_if(_tokenizer_char(&v));
+			RETURN_IF(_tokenizer_char(&v));
 			memory_w8(OFFSET_DATA + _tokenizer.DataOffset, v);
 			_tokenizer.DataOffset += 1;
 		}
@@ -424,13 +424,13 @@ static i8 tokenizer_next(void)
 		}
 		else if(c == '\'')
 		{
-			return_if(_tokenizer_char_literal());
+			RETURN_IF(_tokenizer_char_literal());
 			_tokenizer_debug();
 			return 0;
 		}
 		else if(c == '\"')
 		{
-			return_if(_tokenizer_string_literal());
+			RETURN_IF(_tokenizer_string_literal());
 			_tokenizer_debug();
 			return 0;
 		}
@@ -442,7 +442,7 @@ static i8 tokenizer_next(void)
 		}
 		else if(c == '-' || isdigit(c))
 		{
-			return_if(_tokenizer_number());
+			RETURN_IF(_tokenizer_number());
 			_tokenizer_debug();
 			return 0;
 		}

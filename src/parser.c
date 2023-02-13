@@ -68,7 +68,6 @@ static void _map_init(IdentifierMap *map, u32 offset)
 	map->Offset = offset;
 }
 
-
 #define MAX_FUNCTIONS 256
 
 typedef struct PARSER
@@ -87,7 +86,9 @@ typedef struct PARSER
 static Parser _parser;
 
 static i8 _parser_statement(void);
-static i8 _parser_block(u8 local_vars);
+static i8 _parser_fn_block(u8 local_vars);
+static i8 _parser_block_inner(void);
+static i8 _parser_block(void);
 static i8 _parser_if(void);
 static i8 _parser_while(void);
 static i8 _parser_do_while(void);
@@ -102,6 +103,15 @@ static i8 _parser_fn(void);
 static void _parser_call_main(void);
 static i8 _parser_check_impl(void);
 static i8 _parser_main(void);
+
+#define EXPECT(TYPE, ERROR) \
+	do \
+	{ \
+		if(_token.Type != TYPE) \
+		{ \
+			TRACE(ERROR); \
+		} \
+	} while(0)
 
 static void _emit8(u8 v)
 {
@@ -128,29 +138,21 @@ static void _skip(u8 bytes)
 
 static i8 parser_compile(void)
 {
-	printf("\t\t\t\t\t\tPARSER COMPILE\n");
-
 	_map_init(&_parser.Variables, OFFSET_VARIABLES);
 	_map_init(&_parser.Functions, OFFSET_FUNCTIONS);
 
 	_parser_call_main();
 
-	return_if(tokenizer_next());
+	RETURN_IF(tokenizer_next());
 	while(_token.Type != TT_NULL)
 	{
-		if(_token.Type == TT_FN)
-		{
-			return_if(_parser_fn());
-			return_if(tokenizer_next());
-		}
-		else
-		{
-			TRACE(ERROR_EXPECTED_FN);
-		}
+		EXPECT(TT_FN, ERROR_EXPECTED_FN);
+		RETURN_IF(_parser_fn());
+		RETURN_IF(tokenizer_next());
 	}
 
-	return_if(_parser_check_impl());
-	return_if(_parser_main());
+	RETURN_IF(_parser_check_impl());
+	RETURN_IF(_parser_main());
 	return 0;
 }
 
@@ -203,22 +205,18 @@ static i8 _parser_check_impl(void)
 
 static i8 _parser_fn(void)
 {
+#ifdef DEBUG
 	printf("---------------------------------------------------------------------\n");
 	printf("\t\t\t\t\t\tPARSER FN\n");
+#endif
 
-	u16 j;
 	i16 i;
 	u8 used, args;
 
 	used = 0;
 
-	return_if(tokenizer_next());
-	if(_token.Type != TT_FN_IDENTIFIER)
-	{
-		TRACE(ERROR_EXPECTED_IDENTIFIER);
-	}
-
-	printf("%s\n", _token.Identifier);
+	RETURN_IF(tokenizer_next());
+	EXPECT(TT_FN_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
 
 	if((i = identifier_map_insert(&_parser.Functions, _token.Number, _token.Identifier)) < 0)
 	{
@@ -234,42 +232,33 @@ static i8 _parser_fn(void)
 		}
 	}
 
-	return_if(tokenizer_next());
-	if(_token.Type != '(')
-	{
-		TRACE(ERROR_EXPECTED_L_PAREN);
-	}
+	RETURN_IF(tokenizer_next());
+	EXPECT('(', ERROR_EXPECTED_L_PAREN);
 
 	_parser.FunctionAddrs[i] = _parser.Offset;
 
-	return_if(tokenizer_next());
-
 	args = 0;
+	RETURN_IF(tokenizer_next());
 	while(_token.Type != ')')
 	{
-		if(_token.Type != TT_VAR_IDENTIFIER)
-		{
-			TRACE(ERROR_UNEXPECTED_TOKEN);
-		}
-
-		return_if(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier));
+		EXPECT(TT_VAR_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
+		RETURN_IF(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier));
 		++args;
-
-		return_if(tokenizer_next());
+		RETURN_IF(tokenizer_next());
 		if(_token.Type == ',')
 		{
-			return_if(tokenizer_next());
+			RETURN_IF(tokenizer_next());
+			EXPECT(TT_VAR_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
 		}
 	}
 
-	return_if(tokenizer_next());
-	if(_token.Type != '{')
-	{
-		TRACE(ERROR_EXPECTED_L_BRACE);
-	}
+	RETURN_IF(tokenizer_next());
+	EXPECT('{', ERROR_EXPECTED_L_BRACE);
 
 	if(used)
 	{
+		u16 j;
+
 		if(args != _parser.FunctionParams[i])
 		{
 			TRACE(ERROR_FN_NUM_ARGS);
@@ -288,13 +277,15 @@ static i8 _parser_fn(void)
 		_parser.FunctionParams[i] = args;
 	}
 
-	return_if(_parser_block(args));
+	RETURN_IF(_parser_fn_block(args));
 	return 0;
 }
 
 static i8 _parser_statement(void)
 {
+#ifdef DEBUG
 	printf("\t\t\t\t\t\tPARSER STATEMENT\n");
+#endif
 
 	switch(_token.Type)
 	{
@@ -302,39 +293,39 @@ static i8 _parser_statement(void)
 		TRACE(ERROR_UNEXPECTED_EOF);
 
 	case TT_FN_IDENTIFIER:
-		return_if(_parser_action());
+		RETURN_IF(_parser_action());
 		break;
 
 	case TT_VAR_IDENTIFIER:
-		return_if(_parser_assign());
+		RETURN_IF(_parser_assign());
 		break;
 
 	case TT_IF:
-		return_if(_parser_if());
+		RETURN_IF(_parser_if());
 		break;
 
 	case TT_WHILE:
-		return_if(_parser_while());
+		RETURN_IF(_parser_while());
 		break;
 
 	case TT_DO:
-		return_if(_parser_do_while());
+		RETURN_IF(_parser_do_while());
 		break;
 
 	case TT_BREAK:
-		return_if(_parser_break());
+		RETURN_IF(_parser_break());
 		break;
 
 	case TT_CONTINUE:
-		return_if(_parser_continue());
+		RETURN_IF(_parser_continue());
 		break;
 
 	case TT_RETURN:
-		return_if(_parser_return());
+		RETURN_IF(_parser_return());
 		break;
 
 	case '{':
-		return_if(_parser_block(0));
+		RETURN_IF(_parser_block());
 		break;
 
 	default:
@@ -346,7 +337,9 @@ static i8 _parser_statement(void)
 
 static i8 _parser_assign(void)
 {
+#ifdef DEBUG
 	printf("\t\t\t\t\t\tPARSER ASSIGN\n");
+#endif
 
 	i16 i;
 	if((i = identifier_map_find(&_parser.Variables, _token.Identifier)) < 0)
@@ -354,14 +347,10 @@ static i8 _parser_assign(void)
 		TRACE(ERROR_UNDEFINED_IDENTIFIER);
 	}
 
-	return_if(tokenizer_next());
-	return_if(tokenizer_next());
-	return_if(_parser_expression());
-	if(_token.Type != ';')
-	{
-		TRACE(ERROR_EXPECTED_SEMICOLON);
-	}
-
+	RETURN_IF(tokenizer_next());
+	RETURN_IF(tokenizer_next());
+	RETURN_IF(_parser_expression());
+	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
 	_emit8(INSTR_POPL);
 	_emit8(i);
 	return 0;
@@ -369,19 +358,23 @@ static i8 _parser_assign(void)
 
 static i8 _parser_action(void)
 {
+#ifdef DEBUG
 	printf("\t\t\t\t\t\tPARSER ACTION\n");
+#endif
 
-	return_if(_parser_fn_call());
+	RETURN_IF(_parser_fn_call());
 
 	/* Ignored return value */
 	_emit8(INSTR_POP);
-	return_if(tokenizer_next());
+	RETURN_IF(tokenizer_next());
 	return 0;
 }
 
 static i8 _parser_fn_call(void)
 {
+#ifdef DEBUG
 	printf("\t\t\t\t\t\tPARSER FN CALL\n");
+#endif
 
 	i16 i, addr;
 	u8 args, parameters;
@@ -404,26 +397,22 @@ static i8 _parser_fn_call(void)
 	else
 	{
 		/* New function */
-		return_if(i = identifier_map_insert(&_parser.Functions, _token.Number, _token.Identifier));
+		RETURN_IF(i = identifier_map_insert(&_parser.Functions, _token.Number, _token.Identifier));
 		_parser.FunctionAddrs[i] = 0;
 		_parser.FunctionParams[i] = args;
 		_parser.FunctionUsages[_parser.UsagesCount++] = _parser.Offset;
 	}
 
-	return_if(tokenizer_next());
-	if(_token.Type != '(')
-	{
-		TRACE(ERROR_EXPECTED_L_PAREN);
-	}
-
-	return_if(tokenizer_next());
+	RETURN_IF(tokenizer_next());
+	EXPECT('(', ERROR_EXPECTED_L_PAREN);
+	RETURN_IF(tokenizer_next());
 	while(_token.Type != ')')
 	{
-		return_if(_parser_expression());
+		RETURN_IF(_parser_expression());
 		++args;
 		if(_token.Type == ',')
 		{
-			return_if(tokenizer_next());
+			RETURN_IF(tokenizer_next());
 		}
 	}
 
@@ -443,33 +432,26 @@ static i8 _parser_fn_call(void)
 	return 0;
 }
 
-static i8 _parser_block(u8 local_vars)
+static i8 _parser_fn_block(u8 local_vars)
 {
-	printf("\t\t\t\t\t\tPARSER BLOCK\n");
+#ifdef DEBUG
+	printf("\t\t\t\t\t\tPARSER FN BLOCK\n");
+#endif
 
-	return_if(tokenizer_next());
+	RETURN_IF(tokenizer_next());
 	while(_token.Type == TT_VAR)
 	{
 		do
 		{
-			return_if(tokenizer_next());
-			if(_token.Type != TT_VAR_IDENTIFIER)
-			{
-				TRACE(ERROR_EXPECTED_IDENTIFIER);
-			}
-
-			return_if(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier));
+			RETURN_IF(tokenizer_next());
+			EXPECT(TT_VAR_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
+			RETURN_IF(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier));
 			++local_vars;
-			return_if(tokenizer_next());
+			RETURN_IF(tokenizer_next());
 		}
 		while(_token.Type == ',');
-
-		if(_token.Type != ';')
-		{
-			TRACE(ERROR_EXPECTED_SEMICOLON);
-		}
-
-		return_if(tokenizer_next());
+		EXPECT(';', ERROR_EXPECTED_SEMICOLON);
+		RETURN_IF(tokenizer_next());
 	}
 
 	if(local_vars)
@@ -478,19 +460,39 @@ static i8 _parser_block(u8 local_vars)
 		_emit8(local_vars);
 	}
 
+	RETURN_IF(_parser_block_inner());
+	_parser.Variables.Count -= local_vars;
+	return 0;
+}
+
+static i8 _parser_block_inner(void)
+{
 	while(_token.Type != '}')
 	{
-		return_if(_parser_statement());
-		return_if(tokenizer_next());
+		RETURN_IF(_parser_statement());
+		RETURN_IF(tokenizer_next());
 	}
 
-	_parser.Variables.Count -= local_vars;
+	return 0;
+}
+
+static i8 _parser_block(void)
+{
+#ifdef DEBUG
+	printf("\t\t\t\t\t\tPARSER BLOCK\n");
+#endif
+
+	EXPECT('{', ERROR_EXPECTED_L_BRACE);
+	RETURN_IF(tokenizer_next());
+	RETURN_IF(_parser_block_inner());
 	return 0;
 }
 
 static i8 _parser_expression(void)
 {
+#ifdef DEBUG
 	printf("\t\t\t\t\t\tPARSER EXPRESSION\n");
+#endif
 
 	if(_token.Type == TT_NUMBER)
 	{
@@ -511,7 +513,7 @@ static i8 _parser_expression(void)
 			_emit32(value);
 		}
 
-		return_if(tokenizer_next());
+		RETURN_IF(tokenizer_next());
 	}
 	else if(_token.Type == TT_VAR_IDENTIFIER)
 	{
@@ -523,12 +525,12 @@ static i8 _parser_expression(void)
 
 		_emit8(INSTR_PUSHL);
 		_emit8(i);
-		return_if(tokenizer_next());
+		RETURN_IF(tokenizer_next());
 	}
 	else if(_token.Type == TT_FN_IDENTIFIER)
 	{
-		return_if(_parser_fn_call());
-		return_if(tokenizer_next());
+		RETURN_IF(_parser_fn_call());
+		RETURN_IF(tokenizer_next());
 	}
 	else
 	{
@@ -540,14 +542,16 @@ static i8 _parser_expression(void)
 
 static i8 _parser_if(void)
 {
+#ifdef DEBUG
 	printf("\t\t\t\t\t\tPARSER IF\n");
+#endif
 
 	Tokenizer state;
 	u16 idx_cond, idx_end;
 
 	/* Parse condition */
-	return_if(tokenizer_next());
-	return_if(_parser_expression());
+	RETURN_IF(tokenizer_next());
+	RETURN_IF(_parser_expression());
 
 	/* Conditional jump to skip if */
 	_emit8(INSTR_JZ);
@@ -555,16 +559,11 @@ static i8 _parser_if(void)
 	_skip(2);
 
 	/* Parse if body */
-	if(_token.Type != '{')
-	{
-		TRACE(ERROR_EXPECTED_L_BRACE);
-	}
-
-	return_if(_parser_block(0));
+	RETURN_IF(_parser_block());
 
 	/* Save tokenizer state */
 	state = _tokenizer;
-	return_if(tokenizer_next());
+	RETURN_IF(tokenizer_next());
 
 	/* Is there an else or elif */
 	if(_token.Type == TT_ELIF || _token.Type == TT_ELSE)
@@ -579,17 +578,12 @@ static i8 _parser_if(void)
 
 		if(_token.Type == TT_ELIF)
 		{
-			return_if(_parser_if());
+			RETURN_IF(_parser_if());
 		}
 		else
 		{
-			return_if(tokenizer_next());
-			if(_token.Type != '{')
-			{
-				TRACE(ERROR_EXPECTED_L_BRACE);
-			}
-
-			return_if(_parser_block(0));
+			RETURN_IF(tokenizer_next());
+			RETURN_IF(_parser_block());
 			memory_w16(OFFSET_CODE + idx_end, _parser.Offset);
 		}
 	}
@@ -605,15 +599,17 @@ static i8 _parser_if(void)
 
 static i8 _parser_while(void)
 {
+#ifdef DEBUG
 	printf("\t\t\t\t\t\tPARSER WHILE\n");
+#endif
 
 	u16 idx_before, idx_branch, prev_break, prev_continue;
 
 	idx_before = _parser.Offset;
 
 	/* Parse condition */
-	return_if(tokenizer_next());
-	return_if(_parser_expression());
+	RETURN_IF(tokenizer_next());
+	RETURN_IF(_parser_expression());
 
 	/* Conditional jump to exit loop */
 	_emit8(INSTR_JZ);
@@ -621,16 +617,11 @@ static i8 _parser_while(void)
 	_skip(2);
 
 	/* Loop body */
-	if(_token.Type != '{')
-	{
-		TRACE(ERROR_EXPECTED_L_BRACE);
-	}
-
 	prev_break = _parser.BreakStack.Top;
 	prev_continue = _parser.ContinueStack.Top;
 
 	++_parser.LoopNesting;
-	return_if(_parser_block(0));
+	RETURN_IF(_parser_block());
 	--_parser.LoopNesting;
 
 	/* Jump back to loop condition */
@@ -648,39 +639,29 @@ static i8 _parser_while(void)
 
 static i8 _parser_do_while(void)
 {
+#ifdef DEBUG
 	printf("\t\t\t\t\t\tPARSER DO WHILE\n");
+#endif
 
 	u16 idx_begin, idx_branch, prev_break, prev_continue;
 
 	idx_begin = _parser.Offset;
 
 	/* Loop body */
-	return_if(tokenizer_next());
+	RETURN_IF(tokenizer_next());
 	prev_break = _parser.BreakStack.Top;
 	prev_continue = _parser.ContinueStack.Top;
 
-	if(_token.Type != '{')
-	{
-		TRACE(ERROR_EXPECTED_L_BRACE);
-	}
-
 	++_parser.LoopNesting;
-	return_if(_parser_block(0));
+	RETURN_IF(_parser_block());
 	--_parser.LoopNesting;
 
 	/* Parse condition */
-	return_if(tokenizer_next());
-	if(_token.Type != TT_WHILE)
-	{
-		TRACE(ERROR_EXPECTED_WHILE);
-	}
-
-	return_if(tokenizer_next());
-	return_if(_parser_expression());
-	if(_token.Type != ';')
-	{
-		TRACE(ERROR_EXPECTED_SEMICOLON);
-	}
+	RETURN_IF(tokenizer_next());
+	EXPECT(TT_WHILE, ERROR_EXPECTED_WHILE);
+	RETURN_IF(tokenizer_next());
+	RETURN_IF(_parser_expression());
+	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
 
 	/* Conditional jump to loop beginning */
 	idx_branch = _parser.Offset;
@@ -695,12 +676,12 @@ static i8 _parser_do_while(void)
 
 static i8 _parser_break(void)
 {
-	return_if(tokenizer_next());
-	if(_token.Type != ';')
-	{
-		TRACE(ERROR_EXPECTED_SEMICOLON);
-	}
+#ifdef DEBUG
+	printf("\t\t\t\t\t\tPARSER BREAK\n");
+#endif
 
+	RETURN_IF(tokenizer_next());
+	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
 	if(!_parser.LoopNesting)
 	{
 		TRACE(ERROR_INV_BREAK);
@@ -714,12 +695,12 @@ static i8 _parser_break(void)
 
 static i8 _parser_continue(void)
 {
-	return_if(tokenizer_next());
-	if(_token.Type != ';')
-	{
-		TRACE(ERROR_EXPECTED_SEMICOLON);
-	}
+#ifdef DEBUG
+	printf("\t\t\t\t\t\tPARSER CONTINUE\n");
+#endif
 
+	RETURN_IF(tokenizer_next());
+	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
 	if(!_parser.LoopNesting)
 	{
 		TRACE(ERROR_INV_CONTINUE);
@@ -733,13 +714,20 @@ static i8 _parser_continue(void)
 
 static i8 _parser_return(void)
 {
+#ifdef DEBUG
 	printf("\t\t\t\t\t\tPARSER RETURN\n");
+#endif
 
-	return_if(tokenizer_next());
-	return_if(_parser_expression());
-	if(_token.Type != ';')
+	RETURN_IF(tokenizer_next());
+	if(_token.Type == ';')
 	{
-		TRACE(ERROR_EXPECTED_SEMICOLON);
+		_emit8(INSTR_PUSHI8);
+		_emit8(0);
+	}
+	else
+	{
+		RETURN_IF(_parser_expression());
+		EXPECT(';', ERROR_EXPECTED_SEMICOLON);
 	}
 
 	_emit8(INSTR_RET);

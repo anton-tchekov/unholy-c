@@ -10,7 +10,7 @@
 		return __ret; \
 	} while(0)
 
-#define return_if(E) \
+#define RETURN_IF(E) \
 	do \
 	{ \
 		i8 __ret; \
@@ -29,7 +29,7 @@
 		return -e - 1; \
 	} while(0)
 
-#define return_if(E) \
+#define RETURN_IF(E) \
 	do \
 	{ \
 		i8 ret; \
@@ -46,6 +46,7 @@
 	ERROR(UNEXPECTED_TOKEN) \
 	ERROR(EXPECTED_L_BRACE) \
 	ERROR(EXPECTED_L_PAREN) \
+	ERROR(EXPECTED_R_PAREN) \
 	ERROR(EXPECTED_SEMICOLON) \
 	ERROR(EXPECTED_WHILE) \
 	ERROR(EXPECTED_IDENTIFIER) \

@@ -44,7 +44,6 @@ static u32 memory_r32(u32 addr)
 	return _read_32(_output + addr);
 }
 
-
 #elif PLATFORM == PLATFORM_AVR
 
 

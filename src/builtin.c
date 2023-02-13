@@ -54,6 +54,16 @@ static u32 _inv(u32 *p)
 	return ~p[0];
 }
 
+static u32 _shl(u32 *p)
+{
+	return p[0] << p[1];
+}
+
+static u32 _shr(u32 *p)
+{
+	return p[0] >> p[1];
+}
+
 static u32 _not(u32 *p)
 {
 	return !p[0];
@@ -442,6 +452,8 @@ static const i8 _num_parameters[] PROGMEM =
 	2, /* or   */
 	2, /* xor  */
 	2, /* inv  */
+	2, /* shl  */
+	2, /* shr  */
 	2, /* not  */
 	2, /* eq   */
 	2, /* ne   */
@@ -539,6 +551,8 @@ static u32 (*_builtins[])(u32 *) PROGMEM =
 	_or,
 	_xor,
 	_inv,
+	_shl,
+	_shr,
 	_not,
 	_eq,
 	_ne,
@@ -636,6 +650,8 @@ static const char _identifiers[] PROGMEM =
 	"or\0"
 	"xor\0"
 	"inv\0"
+	"shl\0"
+	"shr\0"
 	"not\0"
 	"eq\0"
 	"ne\0"

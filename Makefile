@@ -3,7 +3,7 @@ CFLAGS=-I'include/' \
 	-Werror=uninitialized \
 	-Werror=return-type \
 	-Werror=implicit-function-declaration \
-	-Wall -Wextra -pedantic -std=c99 -g -DDEBUG  -DPLATFORM=PLATFORM_LINUX
+	-Wall -Wextra -pedantic -std=c99 -g -DDEBUG -DPLATFORM=PLATFORM_LINUX
 
 LDFLAGS=-lm
 

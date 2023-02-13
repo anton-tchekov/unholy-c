@@ -49,6 +49,5 @@ static const char *_token_type_string(i8 code)
 	return "TT_UNDEFINED";
 }
 
-
 #endif
 
