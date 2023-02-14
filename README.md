@@ -16,60 +16,6 @@
 
     ./nanoc [file.uhc]
 
-
-## Design Decisions
-
-There are some unusual design decisions that I am going to explain here:
-
-1. `memory_XX` functions:
-One of the goals for this project to be able to be run on an AVR with external memory. Since the chips have very little internal RAM (eg. 2048 bytes for an ATMega328, the one on an Arduino UNO), I am using these functions to access
-the external memory. When compiling for an OS target, the external memory
-is simulated by an equally sized, flat u8-array.
-
-2. In some places, the Tokenizer does things that are actually the job of the parser, (best example: string literals)
-
-It makes the code shorter, more efficient and easier to understand by eliminating unneccessary passing around of data.
-
-3. (Excessive?) Use of macros: `RETURN_IF`, `TRACE`, `EXPECT`, etc.
-
-I am using macros mainly to make error handling easier.
-The parser uses recursion to handle expressions, nested blocks, etc.
-When there is an compiler error, the error needs to be propagated up to
-where it can be handled.
-
-`TRACE` "throws" an error, by returning the error code. In debug mode,
-also prints file, function and line number to make finding bugs easier.
-
-`RETURN_IF`
-if the called function returns 0 (success): does nothing\
-if the called function returns a negative status code (error):\
-    returns the return value
-
-Exceptions in C, yay!
-
-`EXPECT` is used to shorten the commonly needed:
-
-    if(_token.Type != SOME_TOKEN_TYPE)
-    {
-        TRACE(ERROR_EXPECTED_SOME_TOKEN_TYPE);
-    }
-
-`error.c` uses macros to generate the error messages automatically.
-
-4. Including `.c` files
-
-By including all other C files into one single file, the whole program is compiled in one translation unit. This enables the C compiler to make better much optimizations. The wins are further improved by making all functions `static`,
-which tells the compiler that the function cannot be called externally.
-
-This is essentially my adaptation of the "[SQLite Amalgamation](https://www.sqlite.org/amalgamation.html)"
-
-Quote from the link:
-
-> Combining all the code for SQLite into one big file makes SQLite easier to
-> deploy - there is just one file to keep track of. And because all code is in a
-> single translation unit, compilers can do better inter-procedure and inlining
-> optimization resulting in machine code that is between 5% and 10% faster.
-
 # Unholy C Language Documentation
 
 - *[ It's a reference to the programming language Holy C of Temple OS ]*
@@ -371,6 +317,61 @@ Example (notice the square brackets):
 
 
 # Development
+
+
+## Design Decisions
+
+There are some unusual design decisions that I am going to explain here:
+
+1. `memory_XX` functions:
+One of the goals for this project to be able to be run on an AVR with external memory. Since the chips have very little internal RAM (eg. 2048 bytes for an ATMega328, the one on an Arduino UNO), I am using these functions to access
+the external memory. When compiling for an OS target, the external memory
+is simulated by an equally sized, flat u8-array.
+
+2. In some places, the Tokenizer does things that are actually the job of the parser, (best example: string literals)
+
+It makes the code shorter, more efficient and easier to understand by eliminating unneccessary passing around of data.
+
+3. (Excessive?) Use of macros: `RETURN_IF`, `TRACE`, `EXPECT`, etc.
+
+I am using macros mainly to make error handling easier.
+The parser uses recursion to handle expressions, nested blocks, etc.
+When there is an compiler error, the error needs to be propagated up to
+where it can be handled.
+
+`TRACE` "throws" an error, by returning the error code. In debug mode,
+also prints file, function and line number to make finding bugs easier.
+
+`RETURN_IF`
+if the called function returns 0 (success): does nothing\
+if the called function returns a negative status code (error):\
+    returns the return value
+
+Exceptions in C, yay!
+
+`EXPECT` is used to shorten the commonly needed:
+
+    if(_token.Type != SOME_TOKEN_TYPE)
+    {
+        TRACE(ERROR_EXPECTED_SOME_TOKEN_TYPE);
+    }
+
+`error.c` uses macros to generate the error messages automatically.
+
+4. Including `.c` files
+
+By including all other C files into one single file, the whole program is compiled in one translation unit. This enables the C compiler to make much better optimizations. This is further improved by making all functions `static`,
+which tells the compiler that the function cannot be called externally.
+
+This is essentially my adaptation of the "[SQLite Amalgamation](https://www.sqlite.org/amalgamation.html)"
+
+Quote from the link:
+
+> Combining all the code for SQLite into one big file makes SQLite easier to
+> deploy - there is just one file to keep track of. And because all code is in a
+> single translation unit, compilers can do better inter-procedure and inlining
+> optimization resulting in machine code that is between 5% and 10% faster.
+
 
 ## Known Bugs
 - Function parameter/Arguments trailing comma
