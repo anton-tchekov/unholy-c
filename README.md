@@ -194,13 +194,13 @@ Exactly the same as in `<math.h>`
 |------------|------------------------------------|-----------------------------------------------|
 | `isupper`  | Is uppercase?                      | `A-Z`                                         |
 | `islower`  | Is lowercase?                      | `a-z`                                         |
-| `isdigit`  | Is digit?                          |` 0-9`                                         |
+| `isdigit`  | Is digit?                          | `0-9`                                         |
 | `isalpha`  | Is in alphabet?                    | `a-z`, `A-Z`                                  |
 | `isalnum`  | Is alphanumeric?                   | `a-z`, `A-Z`, `0-9`                           |
 | `iscntrl`  | Is control character?              | ASCII `0-31` and `127`                        |
 | `isgraph`  | Is graphical?                      | ASCII `33-126`                                |
 | `isprint`  | Is printable?                      | ASCII `32-126` (Opposite of iscntrl)          |
-| `ispunct`  | Is punctuation?                    | `!"#$%&'()*+,-./:;<=>?@[\\]^_\`{\|}~`         |
+| `ispunct`  | Is punctuation?                    | `!"#$%&'()*+,-./:;<=>?@[\]^_``{\|}~`         |
 | `isspace`  | Is whitespace?                     | `' '`, `'\n'`, `'\t'`, `'\v'`, `'\f'`, `'\r'` |
 | `isxdigit` | Is hexadecimal?                    | `0-9`, `a-f`, `A-F`                           |
 | `tolower`  | If uppercase, convert to lowercase |                                               |
