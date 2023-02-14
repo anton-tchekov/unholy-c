@@ -34,6 +34,11 @@ static u32 _mod(u32 *p)
 	return p[0] % p[1];
 }
 
+static u32 _abs(u32 *p)
+{
+	return (i32)p[0] < 0 ? -p[0] : p[0];
+}
+
 static u32 _and(u32 *p)
 {
 	return p[0] & p[1];
@@ -265,6 +270,11 @@ static u32 _floor(u32 *p)
 	return fbti(floor(ibtf(p[0])));
 }
 
+static u32 _round(u32 *p)
+{
+	return fbti(round(ibtf(p[0])));
+}
+
 /* CHAR */
 static u32 _isupper(u32 *p)
 {
@@ -447,8 +457,9 @@ static const i8 _num_parameters[] PROGMEM =
 	2, /* sub  */
 	2, /* mul  */
 	2, /* div  */
-	2, /* and  */
 	2, /* mod  */
+	2, /* abs  */
+	2, /* and  */
 	2, /* or   */
 	2, /* xor  */
 	2, /* inv  */
@@ -498,6 +509,7 @@ static const i8 _num_parameters[] PROGMEM =
 	1, /* sqrt  */
 	1, /* ceil  */
 	1, /* floor */
+	1, /* round */
 
 	/* CHAR */
 	1, /* isupper  */
@@ -546,8 +558,9 @@ static u32 (*_builtins[])(u32 *) PROGMEM =
 	_sub,
 	_mul,
 	_div,
-	_and,
 	_mod,
+	_abs,
+	_and,
 	_or,
 	_xor,
 	_inv,
@@ -597,6 +610,7 @@ static u32 (*_builtins[])(u32 *) PROGMEM =
 	_sqrt,
 	_ceil,
 	_floor,
+	_round,
 
 	/* CHAR */
 	_isupper,
@@ -645,8 +659,9 @@ static const char _identifiers[] PROGMEM =
 	"sub\0"
 	"mul\0"
 	"div\0"
-	"and\0"
 	"mod\0"
+	"abs\0"
+	"and\0"
 	"or\0"
 	"xor\0"
 	"inv\0"
@@ -696,6 +711,7 @@ static const char _identifiers[] PROGMEM =
 	"sqrt\0"
 	"ceil\0"
 	"floor\0"
+	"round\0"
 
 	/* CHAR */
 	"isupper\0"

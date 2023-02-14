@@ -1,6 +1,82 @@
+# Usage
+
+**Clone repo:**
+
+    git clone https://github.com/anton-tchekov/unholy-c.git
+
+**Regular build:**
+
+    make
+
+**Clean build:**
+
+    make clean all
+
+**Run:**
+
+    ./nanoc [file.uhc]
+
+
+## Design Decisions
+
+There are some unusual design decisions that I am going to explain here:
+
+1. `memory_XX` functions:
+One of the goals for this project to be able to be run on an AVR with external memory. Since the chips have very little internal RAM (eg. 2048 bytes for an ATMega328, the one on an Arduino UNO), I am using these functions to access
+the external memory. When compiling for an OS target, the external memory
+is simulated by an equally sized, flat u8-array.
+
+2. In some places, the Tokenizer does things that are actually the job of the parser, (best example: string literals)
+
+It makes the code shorter, more efficient and easier to understand by eliminating unneccessary passing around of data.
+
+3. (Excessive?) Use of macros: `RETURN_IF`, `TRACE`, `EXPECT`, etc.
+
+I am using macros mainly to make error handling easier.
+The parser uses recursion to handle expressions, nested blocks, etc.
+When there is an compiler error, the error needs to be propagated up to
+where it can be handled.
+
+`TRACE` "throws" an error, by returning the error code. In debug mode,
+also prints file, function and line number to make finding bugs easier.
+
+`RETURN_IF`
+if the called function returns 0 (success): does nothing\
+if the called function returns a negative status code (error):\
+    returns the return value
+
+Exceptions in C, yay!
+
+`EXPECT` is used to shorten the commonly needed:
+
+    if(_token.Type != SOME_TOKEN_TYPE)
+    {
+        TRACE(ERROR_EXPECTED_SOME_TOKEN_TYPE);
+    }
+
+`error.c` uses macros to generate the error messages automatically.
+
+4. Including `.c` files
+
+By including all other C files into one single file, the whole program is compiled in one translation unit. This enables the C compiler to make better much optimizations. The wins are further improved by making all functions `static`,
+which tells the compiler that the function cannot be called externally.
+
+This is essentially my adaptation of the "[SQLite Amalgamation](https://www.sqlite.org/amalgamation.html)"
+
+Quote from the link:
+
+> Combining all the code for SQLite into one big file makes SQLite easier to
+> deploy - there is just one file to keep track of. And because all code is in a
+> single translation unit, compilers can do better inter-procedure and inlining
+> optimization resulting in machine code that is between 5% and 10% faster.
+
 # Unholy C Language Documentation
 
 - *[ It's a reference to the programming language Holy C of Temple OS ]*
+
+## Source File Extension
+
+`.uhc` for obvious reasons.
 
 ## Variables
 
@@ -60,7 +136,7 @@ Only multiline comments are supported:
 
 ## Expressions
 
-Expressions, used for example on the right hand side of an assignment,
+Expressions (used for example on the right hand side of an assignment)
 consist only out of function calls.
 
 **Example:**
@@ -172,7 +248,7 @@ Exactly the same as in `<math.h>`
 | `islower`  | Is lowercase? (a-z)                |
 | `isdigit`  | Is digit? (0-9)                    |
 | `isalpha`  | Is in alphabet? (a-z, A-Z)         |
-| `isalnum`  | Is Alphanumeric (0-9, a-z, A-Z)    |
+| `isalnum`  | Is alphanumeric (0-9, a-z, A-Z)    |
 | `iscntrl`  | Is control character?
 | `isgraph`  | Is graphical?
 | `isprint`  | Is printable?
@@ -191,9 +267,7 @@ Exactly the same as in `<math.h>`
 
 ## Functions
 
-The program starts at the `main` function.
-
-Example:
+**Example:**
 
     fn function_name(param0, param1, param2)
     {
@@ -203,6 +277,8 @@ Example:
 All functions have a 32-bit return value.
 If there return statement is empty (`return;`) or does not exist,
 the implicit default return value is 0.
+
+The program starts at the `main` function.
 
 ## Control Flow
 
@@ -238,11 +314,11 @@ There are three types of loops:
     }
 ```
 
-`break;` and `continue;` statements are supported. There is no goto.
+`break;` and `continue;` statements are supported. There is no `goto`.
 
 ### if-elif-else Branch
 
-Example:
+**Example:**
 
     if lt(number, 10) {
         printf("Your number is less than 10\n");
@@ -258,11 +334,11 @@ Example:
 
 The `jump` statement is similar to the classic `switch-case`, but with a few key differences. First, there are no case labels. The result of the expression at the top will be evaluated, and interpreted as a unsigned integer. It will then jump to the corresponding block, numbered starting from zero. This enables the jump statement to **always** be compiled into a jump table.
 
-For example, the expression for a `jump` statement for the inputs [ 2, 4, 6, 8, 10 ] would look something like this:
+For example, the expression for a `jump` statement for the inputs `[ 2, 4, 6, 8, 10 ]` would look something like this:
 
     sub(shr(input, 1), 1)
 
-The division by two, and subtraction of one is done to map the inputs to [ 0..n-1 ]
+The division by two, and subtraction of one is done to map the inputs to `[ 0..n-1 ]`
 
      2 -> 0
      4 -> 1
@@ -270,7 +346,7 @@ The division by two, and subtraction of one is done to map the inputs to [ 0..n-
      8 -> 3
     10 -> 4
 
-If the input cannot be mapped to [ 0..n-1 ], if-elif-else should be used instead.
+If the input cannot be mapped to `[ 0..n-1 ]`, if-elif-else should be used instead.
 
 There is no `default` branch, since that can be done with an `if` beforehand.
 The arrow operator after a block denotes fall-through behaviour.
@@ -307,10 +383,6 @@ Example (notice the square brackets):
 ## TODO
 - finish docs for char functions
 - add memory access functions
-- add int abs function
-- add float round function
-- booleans
-- infinite loop
 - jump statement
 - global constants
 - i/o and file access
@@ -326,8 +398,13 @@ Example (notice the square brackets):
 	%b   Binary
 		Optional pad left with zero or space
 
-- Add Code Examples
-
+- Add better Code Examples
 - Code Cleanup
 - Automated testing
 - Optimizations
+
+## DONE
+- add int abs function
+- add float round function
+- booleans
+- infinite loop

@@ -92,6 +92,7 @@ static i8 _parser_block(void);
 static i8 _parser_if(void);
 static i8 _parser_while(void);
 static i8 _parser_do_while(void);
+static i8 _parser_loop(void);
 static i8 _parser_break(void);
 static i8 _parser_continue(void);
 static i8 _parser_return(void);
@@ -310,6 +311,10 @@ static i8 _parser_statement(void)
 
 	case TT_DO:
 		RETURN_IF(_parser_do_while());
+		break;
+
+	case TT_LOOP:
+		RETURN_IF(_parser_loop());
 		break;
 
 	case TT_BREAK:
@@ -636,6 +641,36 @@ static i8 _parser_while(void)
 	address_stack_update(&_parser.ContinueStack, prev_continue, idx_before);
 	return 0;
 }
+
+static i8 _parser_loop(void)
+{
+#ifdef DEBUG
+	printf("\t\t\t\t\t\tPARSER LOOP\n");
+#endif
+
+	u16 idx_before, prev_break, prev_continue;
+
+	idx_before = _parser.Offset;
+
+	/* Loop body */
+	prev_break = _parser.BreakStack.Top;
+	prev_continue = _parser.ContinueStack.Top;
+
+	++_parser.LoopNesting;
+	RETURN_IF(tokenizer_next());
+	RETURN_IF(_parser_block());
+	--_parser.LoopNesting;
+
+	/* Jump back to loop condition */
+	_emit8(INSTR_JMP);
+	_emit16(idx_before);
+
+	/* Handle break and continue statements */
+	address_stack_update(&_parser.BreakStack, prev_break, _parser.Offset);
+	address_stack_update(&_parser.ContinueStack, prev_continue, idx_before);
+	return 0;
+}
+
 
 static i8 _parser_do_while(void)
 {

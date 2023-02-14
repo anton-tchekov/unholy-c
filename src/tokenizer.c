@@ -193,8 +193,23 @@ static void _tokenizer_identifier(void)
 	*p = '\0';
 	if((keyword = _keyword_find(_token.Identifier)) >= 0)
 	{
-		_token.Type = keyword;
-		return;
+		if(keyword == TT_TRUE)
+		{
+			_token.Type = TT_NUMBER;
+			_token.Number = 1;
+			return;
+		}
+		else if(keyword == TT_FALSE)
+		{
+			_token.Type = TT_NUMBER;
+			_token.Number = 0;
+			return;
+		}
+		else
+		{
+			_token.Type = keyword;
+			return;
+		}
 	}
 
 	if(isspace(c))
