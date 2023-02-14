@@ -87,7 +87,7 @@ consist only out of function calls.
 
 **Example:**
 
-	/* x = x^2 + x + 1 */
+	/* y = x^2 + x + 1 */
     y = add(add(mul(x, x), x), 1);
 
 ## Built-in Functions
@@ -132,7 +132,7 @@ and unsigned numbers.
 ### Bitwise operators
 | C Operator | Function | Meaning              |
 |------------|----------|----------------------|
-| `|`        | `or`     | Bitwise OR           |
+| `\|`       | `or`     | Bitwise OR           |
 | `&`        | `and`    | Bitwise AND          |
 | `~`        | `inv`    | Bitwise NOT          |
 | `^`        | `xor`    | Bitwise Exclusive OR |
@@ -188,21 +188,23 @@ Exactly the same as in `<math.h>`
 
 ### Characters
 
-| Function   | Meaning                            |
-|------------|------------------------------------|
-| `isupper`  | Is uppercase? (A-Z)                |
-| `islower`  | Is lowercase? (a-z)                |
-| `isdigit`  | Is digit? (0-9)                    |
-| `isalpha`  | Is in alphabet? (a-z, A-Z)         |
-| `isalnum`  | Is alphanumeric (0-9, a-z, A-Z)    |
-| `iscntrl`  | Is control character?
-| `isgraph`  | Is graphical?
-| `isprint`  | Is printable?
-| `ispunct`  | Is punctuation?
-| `isspace`  | Is whitespace?
-| `isxdigit` | Is hexadecimal? (0-9, a-f, A-F)    |
-| `tolower`  | If uppercase, convert to lowercase |
-| `toupper`  | If lowercase, convert to uppercase |
+
+
+| Function   | Meaning                            | true for                                      |
+|------------|------------------------------------|-----------------------------------------------|
+| `isupper`  | Is uppercase?                      | `A-Z`                                         |
+| `islower`  | Is lowercase?                      | `a-z`                                         |
+| `isdigit`  | Is digit?                          |` 0-9`                                         |
+| `isalpha`  | Is in alphabet?                    | `a-z`, `A-Z`                                  |
+| `isalnum`  | Is alphanumeric?                   | `a-z`, `A-Z`, `0-9`                           |
+| `iscntrl`  | Is control character?              | ASCII `0-31` and `127`                        |
+| `isgraph`  | Is graphical?                      | ASCII `33-126`                                |
+| `isprint`  | Is printable?                      | ASCII `32-126` (Opposite of iscntrl)          |
+| `ispunct`  | Is punctuation?                    | `!"#$%&'()*+,-./:;<=>?@[\\]^_\`{\|}~`         |
+| `isspace`  | Is whitespace?                     | `' '`, `'\n'`, `'\t'`, `'\v'`, `'\f'`, `'\r'` |
+| `isxdigit` | Is hexadecimal?                    | `0-9`, `a-f`, `A-F`                           |
+| `tolower`  | If uppercase, convert to lowercase |                                               |
+| `toupper`  | If lowercase, convert to uppercase |                                               |
 
 ### Random
 
@@ -318,7 +320,6 @@ Example (notice the square brackets):
 
 # Development
 
-
 ## Design Decisions
 
 There are some unusual design decisions that I am going to explain here:
@@ -343,9 +344,9 @@ where it can be handled.
 also prints file, function and line number to make finding bugs easier.
 
 `RETURN_IF`
-if the called function returns 0 (success): does nothing\
-if the called function returns a negative status code (error):\
-    returns the return value
+If the called function returns 0 (success), return_if does nothing.
+If the called function returns a negative status code (error),
+return_if returns the return value
 
 Exceptions in C, yay!
 
@@ -360,8 +361,7 @@ Exceptions in C, yay!
 
 4. Including `.c` files
 
-By including all other C files into one single file, the whole program is compiled in one translation unit. This enables the C compiler to make much better optimizations. This is further improved by making all functions `static`,
-which tells the compiler that the function cannot be called externally.
+By including all other C files into one single file, the whole program is in one translation unit. This enables the C compiler to make much better optimizations. This is further improved by making all functions `static`, which tells the compiler that the function cannot be called externally.
 
 This is essentially my adaptation of the "[SQLite Amalgamation](https://www.sqlite.org/amalgamation.html)"
 
@@ -374,18 +374,26 @@ Quote from the link:
 
 
 ## Known Bugs
+
+
 - Function parameter/Arguments trailing comma
+
+
 - String literals comment inbetween
+- tokenizer while loop stupid af
+
 
 ## Untested
 - Break and continue
 - Function with no return actually 0?
 
+
 ## TODO
 - finish docs for char functions
 - add memory access functions
-- jump statement
 - global constants
+
+- jump statement
 - i/o and file access
 - printf
 	%s   String
