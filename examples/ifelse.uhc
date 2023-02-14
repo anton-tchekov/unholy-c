@@ -1,4 +1,4 @@
-fn test(aaa bawe)
+fn test(aaa, bawe)
 {
 	if aaa
 	{
@@ -15,7 +15,7 @@ fn main()
 	var aa;
 	var num;
 	num = 42;
-	if eq(num, 69,) {
+	if eq(num, 69) {
 		println("nice");
 	}
 	elif eq(num, 42) {

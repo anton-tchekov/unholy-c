@@ -1,6 +1,58 @@
+fn am_i_gay()
+{
+	return "yes";
+}
+
 fn main()
 {
-	loop {
-		println("Hello World!");
+	var i, j;
+
+	print_number(what());
+
+	println(am_i_gay());
+
+	i = 0;
+
+	print_number(i);
+	print_number(j);
+
+
+	while lt(i, 10)
+	{
+		i = add(i, 1);
+		if eq(i, 7)
+		{
+			continue;
+		}
+
+		print_number(i);
+
+
 	}
+
+
+	i = 0;
+	loop {
+
+		j = 0;
+		while true {
+			print_number(j);
+			j = add(j, 1);
+			if eq(j, 5) {
+				println("j = 5");
+				break;
+			}
+		}
+
+		i = add(i, 1);
+		if eq(i, 10) {
+			println("i = 10");
+			break;
+		}
+	}
+}
+
+fn what()
+{
+	println("THE DEVIL");
 }

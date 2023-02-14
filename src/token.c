@@ -1,6 +1,3 @@
-#ifndef __TOKEN_TYPE_H__
-#define __TOKEN_TYPE_H__
-
 enum TOKEN_TYPE
 {
 	TT_NULL,
@@ -20,8 +17,12 @@ enum TOKEN_TYPE
 	TT_RETURN,
 	TT_LOOP,
 	TT_TRUE,
-	TT_FALSE
+	TT_FALSE,
+	TT_CONST,
+	TT_JUMP
 };
+
+#ifdef DEBUG
 
 static const char *_token_type_string(i8 code)
 {
@@ -50,4 +51,3 @@ static const char *_token_type_string(i8 code)
 }
 
 #endif
-

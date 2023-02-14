@@ -13,7 +13,9 @@ static const char _keywords[] PROGMEM =
 	"return\0"
 	"loop\0"
 	"true\0"
-	"false\0|";
+	"false\0"
+	"const\0"
+	"jump\0|";
 
 static i8 _keyword_find(const char *name)
 {

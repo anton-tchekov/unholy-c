@@ -10,55 +10,64 @@ typedef struct INTERPRETER
 		OP; /* Operations pointer */
 } Interpreter;
 
-#ifdef DEBUG_INTERPRETER
-
 #define COLOR_RED    "\033[1;31m"
 #define COLOR_PURPLE "\033[1;35m"
 #define COLOR_RESET  "\033[0m"
 
-static void _debug_instruction(Interpreter *i)
+static u8 _debug_instruction(Interpreter *i)
 {
+	u8 size = 0;
 	printf("\n         %5d | %04X | " COLOR_RED, i->IP, i->IP);
 	switch(memory_r8(i->Segment + i->IP))
 	{
 	case INSTR_HALT:
 		printf("HALT\n");
+		size = 1;
 		break;
 
 	case INSTR_PUSHI8:
 		printf("PUSHI8 %d\n", memory_r8(i->Segment + i->IP + 1));
+		size = 2;
 		break;
 
 	case INSTR_PUSHI16:
 		printf("PUSHI16 %d\n", memory_r16(i->Segment + i->IP + 1));
+		size = 3;
 		break;
 
 	case INSTR_PUSHI32:
 		printf("PUSHI32 %d\n", memory_r32(i->Segment + i->IP + 1));
+		size = 5;
 		break;
 
 	case INSTR_PUSHL:
 		printf("PUSHL %d\n", memory_r8(i->Segment + i->IP + 1));
+		size = 2;
 		break;
 
 	case INSTR_POPL:
 		printf("POPL %d\n", memory_r8(i->Segment + i->IP + 1));
+		size = 2;
 		break;
 
 	case INSTR_POP:
 		printf("POP\n");
+		size = 1;
 		break;
 
 	case INSTR_JZ:
 		printf("JZ %d\n", memory_r16(i->Segment + i->IP + 1));
+		size = 3;
 		break;
 
 	case INSTR_JNZ:
 		printf("JNZ %d\n", memory_r16(i->Segment + i->IP + 1));
+		size = 3;
 		break;
 
 	case INSTR_JMP:
 		printf("JMP %d\n", memory_r16(i->Segment + i->IP + 1));
+		size = 3;
 		break;
 
 	case INSTR_CALL:
@@ -74,22 +83,27 @@ static void _debug_instruction(Interpreter *i)
 				printf("CALL %d (%d)\n", addr, args);
 			}
 		}
+		size = 4;
 		break;
 
 	case INSTR_RET:
 		printf("RET\n");
+		size = 1;
 		break;
 
 	case INSTR_DSP:
 		printf("DSP %d\n", memory_r8(i->Segment + i->IP + 1));
+		size = 2;
 		break;
 
 	default:
 		printf("INVALID INSTRUCTION\n");
+		size = 1;
 		break;
 	}
 
 	printf(COLOR_RESET);
+	return size;
 }
 
 static void _debug_stack(Interpreter *i)
@@ -134,6 +148,18 @@ static void _debug_stack(Interpreter *i)
 	printf("+------+-------+------+------------+----------+\n");
 }
 
+static void _disasm(Interpreter *i, u16 len)
+{
+	u16 prev;
+	prev = i->IP;
+	while(i->IP < len)
+	{
+		i->IP += _debug_instruction(i);
+	}
+
+	i->IP = prev;
+}
+
 static void _debug_op_stack(Interpreter *i)
 {
 	u32 addr, start, end, slot;
@@ -170,9 +196,6 @@ static void _debug_op_stack(Interpreter *i)
 
 	printf("+------+-------+------+------------+----------+\n");
 }
-
-
-#endif
 
 static void interpreter_init(Interpreter *i, u32 segment)
 {

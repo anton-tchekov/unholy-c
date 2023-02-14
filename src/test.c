@@ -68,12 +68,14 @@ int main(int argc, char **argv)
 				"row: %d, col: %d\n",
 				error_message(ret),
 				_token.Pos.Row, _token.Pos.Col);
-
 		return 1;
 	}
 
 	Interpreter i;
 	interpreter_init(&i, OFFSET_CODE);
+
+	_disasm(&i, _parser.Offset);
+
 	while(!interpreter_step(&i))
 	{
 	}

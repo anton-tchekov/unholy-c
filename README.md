@@ -109,7 +109,6 @@ consist only out of function calls.
 | `!=`       | `ne`     | Not Equal |
 
 ### Integer Comparison
-
 There are two sets of integer comparison functions for signed
 and unsigned numbers.
 
@@ -145,7 +144,6 @@ and unsigned numbers.
 | `!`        | `not`    | If argument 0, returns 1, else returns 0 |
 
 ### Floating Point
-
 | C Operator | Function | Meaning          |
 |------------|----------|------------------|
 |            | `itf`    | Int to float     |
@@ -165,7 +163,6 @@ and unsigned numbers.
 |            | `round`  | Round function   |
 
 ### Math
-
 Exactly the same as in `<math.h>`
 
 | Function |
@@ -187,9 +184,6 @@ Exactly the same as in `<math.h>`
 | `sqrt`   |
 
 ### Characters
-
-
-
 | Function   | Meaning                            | true for                                      |
 |------------|------------------------------------|-----------------------------------------------|
 | `isupper`  | Is uppercase?                      | `A-Z`                                         |
@@ -207,7 +201,6 @@ Exactly the same as in `<math.h>`
 | `toupper`  | If lowercase, convert to uppercase |                                               |
 
 ### Random
-
 | Function | Meaning       |
 |----------|---------------|
 | `rand`   | Random Number |
@@ -230,7 +223,7 @@ The program starts at the `main` function.
 
 ## Control Flow
 
-Curly braces are mandatory for all control flow contstructs.
+Curly braces are required for all control flow contstructs.
 
 ### Loops
 
@@ -299,7 +292,7 @@ If the input cannot be mapped to `[ 0..n-1 ]`, if-elif-else should be used inste
 There is no `default` branch, since that can be done with an `if` beforehand.
 The arrow operator after a block denotes fall-through behaviour.
 
-Example (notice the square brackets):
+**Example (notice the square brackets):**
 
     jump n [
         {
@@ -324,20 +317,21 @@ Example (notice the square brackets):
 
 There are some unusual design decisions that I am going to explain here:
 
-1. `memory_XX` functions:
+**1.** `memory_XX` functions:
+
 One of the goals for this project to be able to be run on an AVR with external memory. Since the chips have very little internal RAM (eg. 2048 bytes for an ATMega328, the one on an Arduino UNO), I am using these functions to access
 the external memory. When compiling for an OS target, the external memory
 is simulated by an equally sized, flat u8-array.
 
-2. In some places, the Tokenizer does things that are actually the job of the parser, (best example: string literals)
+**2.** In some places, the Tokenizer does things that are actually the job of the parser, (best example: string literals)
 
 It makes the code shorter, more efficient and easier to understand by eliminating unneccessary passing around of data.
 
-3. (Excessive?) Use of macros: `RETURN_IF`, `TRACE`, `EXPECT`, etc.
+**3.** (Excessive?) Use of macros: `RETURN_IF`, `TRACE`, `EXPECT`, etc.
 
 I am using macros mainly to make error handling easier.
 The parser uses recursion to handle expressions, nested blocks, etc.
-When there is an compiler error, the error needs to be propagated up to
+When there is an error, it needs to be propagated up to
 where it can be handled.
 
 `TRACE` "throws" an error, by returning the error code. In debug mode,
@@ -372,29 +366,62 @@ Quote from the link:
 > single translation unit, compilers can do better inter-procedure and inlining
 > optimization resulting in machine code that is between 5% and 10% faster.
 
+## Code Overview
+
+**Utility:**
+
+`types.h`: Contains integer type definitions and
+
+`error.c`: Error handling macros and error definitions
+
+`memory.c`: External memory access interface / emulation
+
+`find.c`: Contains a function to find the position of a string in another,
+	delimiter separated string. Used to detect keywords and builtins
+
+`instr.c`: Bytecode Instruction definitions
+
+`token.c`: Token Type definitions like `TT_IF`, `TT_WHILE`, etc.
+
+`builtin.c`: Contains builtin functions
+
+**Main:**
+
+`tokenizer.c`: Extracts the next token from the source file (keyword, identifier, literal, etc.) and passes it to the parser.
+
+`parser.c`:
+
+`interpreter.c`:
+
+**Driver:**
+
+`main.c`: Currently contains legacy code. TODO
+
+`test.c`: Used for Testing
+
+TODO: merge main and test.
 
 ## Known Bugs
 
 
-- Function parameter/Arguments trailing comma
-
-
-- String literals comment inbetween
-- tokenizer while loop stupid af
-
-
 ## Untested
-- Break and continue
-- Function with no return actually 0?
 
 
 ## TODO
-- finish docs for char functions
+
+EEE
 - add memory access functions
+
+FFF
 - global constants
 
+GGG
 - jump statement
+
+HHH
 - i/o and file access
+
+III
 - printf
 	%s   String
 	%c   Character
@@ -407,13 +434,12 @@ Quote from the link:
 	%b   Binary
 		Optional pad left with zero or space
 
+JJJ
 - Add better Code Examples
 - Code Cleanup
 - Automated testing
 - Optimizations
 
-## DONE
-- add int abs function
-- add float round function
-- booleans
-- infinite loop
+
+## Goals for today:
+- Steps E,F,G

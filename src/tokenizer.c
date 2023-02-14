@@ -56,6 +56,11 @@ static void _tokenizer_read(void)
 	}
 }
 
+static char _tokenizer_lookahead(void)
+{
+	return memory_r8(OFFSET_INPUT + _tokenizer.InputOffset + 1);
+}
+
 static char _tokenizer_advance(void)
 {
 	if(_tokenizer.Current == '\0')
@@ -144,34 +149,52 @@ static void _tokenizer_comment(void)
 {
 	char c;
 
-	c = _tokenizer_advance();
-	if(c == '*')
-	{
-		/* multi line comment */
-		c = _tokenizer_advance();
-		while(c)
-		{
-			c = _tokenizer_advance();
-			if(c != '*')
-			{
-				continue;
-			}
+	_tokenizer_advance();
 
-			c = _tokenizer_advance();
-			if(c == '/')
-			{
-				break;
-			}
+	/* multi line comment */
+	c = _tokenizer_advance();
+	while(c)
+	{
+		c = _tokenizer_advance();
+		if(c != '*')
+		{
+			continue;
 		}
 
-		_tokenizer_advance();
-		_token.Pos = _tokenizer.Pos;
+		c = _tokenizer_advance();
+		if(c == '/')
+		{
+			break;
+		}
 	}
+
+	_tokenizer_advance();
 }
 
 static void _tokenizer_space(void)
 {
 	while(isspace(_tokenizer_advance())) ;
+}
+
+static void _tokenizer_skip(void)
+{
+	char c;
+	for(;;)
+	{
+		c = _tokenizer_current();
+		if(c == '/' && _tokenizer_lookahead() == '*')
+		{
+			_tokenizer_comment();
+		}
+		else if(isspace(c))
+		{
+			_tokenizer_space();
+		}
+		else
+		{
+			break;
+		}
+	}
 }
 
 static void _tokenizer_identifier(void)
@@ -212,10 +235,7 @@ static void _tokenizer_identifier(void)
 		}
 	}
 
-	if(isspace(c))
-	{
-		_tokenizer_space();
-	}
+	_tokenizer_skip();
 
 	_token.Type = (_tokenizer_current() == '(')
 			? TT_FN_IDENTIFIER
@@ -379,7 +399,8 @@ static i8 _tokenizer_string_literal(void)
 			_tokenizer.DataOffset += 1;
 		}
 
-		_tokenizer_space();
+		_tokenizer_advance();
+		_tokenizer_skip();
 	}
 	while(_tokenizer_current() == '\"');
 
@@ -425,52 +446,36 @@ static i8 tokenizer_next(void)
 {
 	char c;
 
+	_tokenizer_skip();
+	c = _tokenizer_current();
 	_token.Pos = _tokenizer.Pos;
-	while((c = _tokenizer_current()))
+	if(c == '\0')
 	{
-		if(c == '/')
-		{
-			_tokenizer_comment();
-		}
-		else if(isspace(c))
-		{
-			_tokenizer_space();
-			_token.Pos = _tokenizer.Pos;
-		}
-		else if(c == '\'')
-		{
-			RETURN_IF(_tokenizer_char_literal());
-			_tokenizer_debug();
-			return 0;
-		}
-		else if(c == '\"')
-		{
-			RETURN_IF(_tokenizer_string_literal());
-			_tokenizer_debug();
-			return 0;
-		}
-		else if(isalpha(c) || c == '_')
-		{
-			_tokenizer_identifier();
-			_tokenizer_debug();
-			return 0;
-		}
-		else if(c == '-' || isdigit(c))
-		{
-			RETURN_IF(_tokenizer_number());
-			_tokenizer_debug();
-			return 0;
-		}
-		else
-		{
-			_token.Type = c;
-			_tokenizer_advance();
-			_tokenizer_debug();
-			return 0;
-		}
+		_token.Type = TT_NULL;
+	}
+	else if(c == '\'')
+	{
+		RETURN_IF(_tokenizer_char_literal());
+	}
+	else if(c == '\"')
+	{
+		RETURN_IF(_tokenizer_string_literal());
+	}
+	else if(isalpha(c) || c == '_')
+	{
+		_tokenizer_identifier();
+	}
+	else if(c == '-' || isdigit(c))
+	{
+		RETURN_IF(_tokenizer_number());
+	}
+	else
+	{
+		_token.Type = c;
+		_tokenizer_advance();
 	}
 
-	_token.Type = TT_NULL;
+	_tokenizer_debug();
 	return 0;
 }
 

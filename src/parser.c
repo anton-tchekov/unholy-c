@@ -2,11 +2,11 @@
 
 typedef struct ADDRESS_STACK
 {
-	u8 Top, Size;
+	u8 Top;
 	u32 Offset;
 } AddressStack;
 
-static void address_stack_update(AddressStack *as, u16 prev, u16 addr)
+static void address_stack_update(AddressStack *as, u8 prev, u16 addr)
 {
 	while(as->Top > prev)
 	{
@@ -51,6 +51,12 @@ static i16 identifier_map_find(IdentifierMap *map, char *key)
 	return -1;
 }
 
+static i16 _identifier_map_insert(IdentifierMap *map, u16 offset, char *key)
+{
+	memory_w16(map->Offset + 2 * map->Count, offset);
+	return map->Count++;
+}
+
 static i16 identifier_map_insert(IdentifierMap *map, u16 offset, char *key)
 {
 	if(identifier_map_find(map, key) >= 0)
@@ -58,14 +64,7 @@ static i16 identifier_map_insert(IdentifierMap *map, u16 offset, char *key)
 		TRACE(ERROR_DUP_MAP_ELEM);
 	}
 
-	memory_w16(map->Offset + 2 * map->Count, offset);
-	return map->Count++;
-}
-
-static void _map_init(IdentifierMap *map, u32 offset)
-{
-	map->Count = 0;
-	map->Offset = offset;
+	return _identifier_map_insert(map, offset, key);
 }
 
 #define MAX_FUNCTIONS 256
@@ -139,8 +138,11 @@ static void _skip(u8 bytes)
 
 static i8 parser_compile(void)
 {
-	_map_init(&_parser.Variables, OFFSET_VARIABLES);
-	_map_init(&_parser.Functions, OFFSET_FUNCTIONS);
+	_parser.Variables.Offset = OFFSET_VARIABLES;
+	_parser.Functions.Offset = OFFSET_FUNCTIONS;
+
+	_parser.BreakStack.Offset = OFFSET_BREAK_STACK;
+	_parser.ContinueStack.Offset = OFFSET_CONTINUE_STACK;
 
 	_parser_call_main();
 
@@ -212,73 +214,81 @@ static i8 _parser_fn(void)
 #endif
 
 	i16 i;
-	u8 used, args;
-
-	used = 0;
+	u8 used, parameters;
 
 	RETURN_IF(tokenizer_next());
 	EXPECT(TT_FN_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
 
-	if((i = identifier_map_insert(&_parser.Functions, _token.Number, _token.Identifier)) < 0)
+	if((i = identifier_map_find(&_parser.Functions, _token.Identifier)) < 0)
 	{
-		if(i == -ERROR_DUP_MAP_ELEM)
+		used = 0;
+		i = _identifier_map_insert(&_parser.Functions, _token.Number, _token.Identifier);
+	}
+	else
+	{
+		used = 1;
+		if(_parser.FunctionAddrs[i])
 		{
-			i = identifier_map_find(&_parser.Functions, _token.Identifier);
-			if(_parser.FunctionAddrs[i])
-			{
-				TRACE(ERROR_FN_REDEFINITION);
-			}
-
-			used = 1;
+			TRACE(ERROR_FN_REDEFINITION);
 		}
 	}
 
-	RETURN_IF(tokenizer_next());
-	EXPECT('(', ERROR_EXPECTED_L_PAREN);
-
 	_parser.FunctionAddrs[i] = _parser.Offset;
 
-	args = 0;
+	parameters = 0;
+	RETURN_IF(tokenizer_next());
+	EXPECT('(', ERROR_EXPECTED_L_PAREN);
 	RETURN_IF(tokenizer_next());
 	while(_token.Type != ')')
 	{
 		EXPECT(TT_VAR_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
 		RETURN_IF(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier));
-		++args;
+		++parameters;
 		RETURN_IF(tokenizer_next());
 		if(_token.Type == ',')
 		{
 			RETURN_IF(tokenizer_next());
 			EXPECT(TT_VAR_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
 		}
+		else if(_token.Type != ')')
+		{
+			TRACE(ERROR_UNEXPECTED_TOKEN);
+		}
 	}
 
 	RETURN_IF(tokenizer_next());
 	EXPECT('{', ERROR_EXPECTED_L_BRACE);
-
 	if(used)
 	{
 		u16 j;
-
-		if(args != _parser.FunctionParams[i])
+		if(parameters != _parser.FunctionParams[i])
 		{
 			TRACE(ERROR_FN_NUM_ARGS);
 		}
 
 		for(j = 0; j < _parser.UsagesCount; ++j)
 		{
-			if(memory_r16(_parser.FunctionUsages[j] + 2) == i)
+			if(memory_r16(_parser.FunctionUsages[j]) == i)
 			{
-				memory_w16(_parser.FunctionUsages[j] + 2, _parser.FunctionAddrs[i]);
+				memory_w16(_parser.FunctionUsages[j], _parser.FunctionAddrs[i]);
 			}
 		}
 	}
 	else
 	{
-		_parser.FunctionParams[i] = args;
+		_parser.FunctionParams[i] = parameters;
 	}
 
-	RETURN_IF(_parser_fn_block(args));
+	RETURN_IF(_parser_fn_block(parameters));
+
+	/* No return statement */
+	if(memory_r8(OFFSET_CODE + _parser.Offset - 1) != INSTR_RET)
+	{
+		_emit8(INSTR_PUSHI8);
+		_emit8(0);
+		_emit8(INSTR_RET);
+	}
+
 	return 0;
 }
 
@@ -361,6 +371,11 @@ static i8 _parser_assign(void)
 	return 0;
 }
 
+static void _add_fn_usage(void)
+{
+	_parser.FunctionUsages[_parser.UsagesCount++] = _parser.Offset + 2;
+}
+
 static i8 _parser_action(void)
 {
 #ifdef DEBUG
@@ -382,7 +397,7 @@ static i8 _parser_fn_call(void)
 #endif
 
 	i16 i, addr;
-	u8 args, parameters;
+	i8 args, parameters;
 
 	args = 0;
 	addr = 0;
@@ -396,16 +411,23 @@ static i8 _parser_fn_call(void)
 	else if((i = identifier_map_find(&_parser.Functions, _token.Identifier)) >= 0)
 	{
 		/* Already defined function */
-		addr = _parser.FunctionAddrs[i];
 		parameters = _parser.FunctionParams[i];
+		if(!(addr = _parser.FunctionAddrs[i]))
+		{
+			/* Not implemented yet */
+			_add_fn_usage();
+			addr = i;
+		}
 	}
 	else
 	{
 		/* New function */
-		RETURN_IF(i = identifier_map_insert(&_parser.Functions, _token.Number, _token.Identifier));
+		i = _identifier_map_insert(&_parser.Functions, _token.Number, _token.Identifier);
+		_add_fn_usage();
 		_parser.FunctionAddrs[i] = 0;
 		_parser.FunctionParams[i] = args;
-		_parser.FunctionUsages[_parser.UsagesCount++] = _parser.Offset;
+		addr = i;
+		parameters = -1;
 	}
 
 	RETURN_IF(tokenizer_next());
@@ -418,16 +440,21 @@ static i8 _parser_fn_call(void)
 		if(_token.Type == ',')
 		{
 			RETURN_IF(tokenizer_next());
+			if(_token.Type == ')')
+			{
+				TRACE(ERROR_UNEXPECTED_TOKEN);
+			}
+		}
+		else if(_token.Type != ')')
+		{
+			TRACE(ERROR_UNEXPECTED_TOKEN);
 		}
 	}
 
-	if(addr)
+	/* Check number of arguments */
+	if(parameters > 0 && args != parameters)
 	{
-		/* Check number of arguments */
-		if(args != parameters)
-		{
-			TRACE(ERROR_FN_NUM_ARGS);
-		}
+		TRACE(ERROR_FN_NUM_ARGS);
 	}
 
 	/* Call function */
@@ -678,7 +705,8 @@ static i8 _parser_do_while(void)
 	printf("\t\t\t\t\t\tPARSER DO WHILE\n");
 #endif
 
-	u16 idx_begin, idx_branch, prev_break, prev_continue;
+	u16 idx_begin, idx_branch;
+	u8 prev_break, prev_continue;
 
 	idx_begin = _parser.Offset;
 
