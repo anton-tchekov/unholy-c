@@ -51,7 +51,7 @@ static i16 identifier_map_find(IdentifierMap *map, char *key)
 	return -1;
 }
 
-static i16 _identifier_map_insert(IdentifierMap *map, u16 offset, char *key)
+static i16 _identifier_map_insert(IdentifierMap *map, u16 offset)
 {
 	memory_w16(map->Offset + 2 * map->Count, offset);
 	return map->Count++;
@@ -64,7 +64,7 @@ static i16 identifier_map_insert(IdentifierMap *map, u16 offset, char *key)
 		TRACE(ERROR_DUP_MAP_ELEM);
 	}
 
-	return _identifier_map_insert(map, offset, key);
+	return _identifier_map_insert(map, offset);
 }
 
 #define MAX_FUNCTIONS 256
@@ -100,6 +100,7 @@ static i8 _parser_action(void);
 static i8 _parser_fn_call(void);
 static i8 _parser_expression(void);
 static i8 _parser_fn(void);
+static i8 _parser_const(void);
 static void _parser_call_main(void);
 static i8 _parser_check_impl(void);
 static i8 _parser_main(void);
@@ -219,6 +220,10 @@ static i8 _parser_const(void)
 {
 	RETURN_IF(tokenizer_next());
 	RETURN_IF(identifier_map_insert(&_parser.Constants, _token.Number, _token.Identifier));
+	RETURN_IF(tokenizer_next());
+	//EXPECT('=', ERROR_EXPECTED_)
+
+	return 0;
 }
 
 static i8 _parser_fn(void)
@@ -237,7 +242,7 @@ static i8 _parser_fn(void)
 	if((i = identifier_map_find(&_parser.Functions, _token.Identifier)) < 0)
 	{
 		used = 0;
-		i = _identifier_map_insert(&_parser.Functions, _token.Number, _token.Identifier);
+		i = _identifier_map_insert(&_parser.Functions, _token.Number);
 	}
 	else
 	{
@@ -378,6 +383,7 @@ static i8 _parser_assign(void)
 	}
 
 	RETURN_IF(tokenizer_next());
+	EXPECT('=', ERROR_EXPECTED_ASSIGN);
 	RETURN_IF(tokenizer_next());
 	RETURN_IF(_parser_expression());
 	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
@@ -437,7 +443,7 @@ static i8 _parser_fn_call(void)
 	else
 	{
 		/* New function */
-		i = _identifier_map_insert(&_parser.Functions, _token.Number, _token.Identifier);
+		i = _identifier_map_insert(&_parser.Functions, _token.Number);
 		_add_fn_usage();
 		_parser.FunctionAddrs[i] = 0;
 		_parser.FunctionParams[i] = args;
