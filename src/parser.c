@@ -75,7 +75,7 @@ typedef struct PARSER
 	u16 Offset;
 	u8 LoopNesting;
 	AddressStack BreakStack, ContinueStack;
-	IdentifierMap Variables, Functions;
+	IdentifierMap Variables, Functions, Constants;
 
 	u8 FunctionParams[MAX_FUNCTIONS];
 	u16 FunctionAddrs[MAX_FUNCTIONS];
@@ -140,6 +140,7 @@ static i8 parser_compile(void)
 {
 	_parser.Variables.Offset = OFFSET_VARIABLES;
 	_parser.Functions.Offset = OFFSET_FUNCTIONS;
+	_parser.Constants.Offset = OFFSET_CONSTANTS;
 
 	_parser.BreakStack.Offset = OFFSET_BREAK_STACK;
 	_parser.ContinueStack.Offset = OFFSET_CONTINUE_STACK;
@@ -147,6 +148,14 @@ static i8 parser_compile(void)
 	_parser_call_main();
 
 	RETURN_IF(tokenizer_next());
+
+	while(_token.Type != TT_FN)
+	{
+		EXPECT(TT_CONST, ERROR_EXPECTED_CONST);
+		RETURN_IF(_parser_const());
+		RETURN_IF(tokenizer_next());
+	}
+
 	while(_token.Type != TT_NULL)
 	{
 		EXPECT(TT_FN, ERROR_EXPECTED_FN);
@@ -204,6 +213,12 @@ static i8 _parser_check_impl(void)
 	}
 
 	return 0;
+}
+
+static i8 _parser_const(void)
+{
+	RETURN_IF(tokenizer_next());
+	RETURN_IF(identifier_map_insert(&_parser.Constants, _token.Number, _token.Identifier));
 }
 
 static i8 _parser_fn(void)
