@@ -200,7 +200,7 @@ Exactly the same as in `<math.h>`
 | `iscntrl`  | Is control character?              | ASCII `0-31` and `127`                        |
 | `isgraph`  | Is graphical?                      | ASCII `33-126`                                |
 | `isprint`  | Is printable?                      | ASCII `32-126` (Opposite of iscntrl)          |
-| `ispunct`  | Is punctuation?                    | `!"#$%&'()*+,-./:;<=>?@[\]^_``{\|}~`         |
+| `ispunct`  | Is punctuation?                    | ``!"#$%&'()*+,-./:;<=>?@[\]^_`{\|}~``         |
 | `isspace`  | Is whitespace?                     | `' '`, `'\n'`, `'\t'`, `'\v'`, `'\f'`, `'\r'` |
 | `isxdigit` | Is hexadecimal?                    | `0-9`, `a-f`, `A-F`                           |
 | `tolower`  | If uppercase, convert to lowercase |                                               |
