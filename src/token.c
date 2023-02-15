@@ -23,7 +23,7 @@ enum TOKEN_TYPE
 	TT_TRUE,
 	TT_FALSE,
 	TT_CONST,
-	TT_JUMP
+	TT_SWITCH
 };
 
 static const char _keywords[] PROGMEM =
@@ -45,7 +45,7 @@ static const char _keywords[] PROGMEM =
 	"true\0"
 	"false\0"
 	"const\0"
-	"jump\0|";
+	"switch\0|";
 
 static i8 _keyword_find(const char *name)
 {

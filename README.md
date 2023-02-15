@@ -238,39 +238,39 @@ There are four types of loops:
 - **counting (not yet implemented)**
 
 ```
-	for c from 'A' to 'Z' {
-		printf("%c\n", c);
-	}
+for c from 'A' to 'Z' {
+    printf("%c\n", c);
+}
 
-	for i from 0 to 100 step 5 {
-		printf("%d\n", i);
-	}
+for i from 0 to 100 step 5 {
+    printf("%d\n", i);
+}
 ```
 
 - **top-controlled**
 
 ```
-    i = 1;
-    while le(i, 10) {
-        print_number(i);
-        i = add(i, 1);
-    }
+i = 1;
+while le(i, 10) {
+    printf("%d\n", i);
+    i = add(i, 1);
+}
 ```
 
 - **bottom-controlled**
 
 ```
-    do {
-        c = get_char();
-    } while ne(c, '\n');
+do {
+    c = get_char()
+} while ne(c, '\n');
 ```
 
 - **infinite**
 
 ```
-    loop {
-        /* Main Loop */
-    }
+loop {
+    /* Main Loop */
+}
 ```
 
 `break;` and `continue;` statements are supported. There is no `goto`.
@@ -289,11 +289,11 @@ There are four types of loops:
         printf("Your number %d\n", number);
     }
 
-### jump Statement (not yet implemented)
+### switch Branch (not yet implemented)
 
-The `jump` statement is similar to the classic `switch-case`, but with a few key differences. First, there are no case labels. The result of the expression at the top will be evaluated, and interpreted as a unsigned integer. It will then jump to the corresponding block, numbered starting from zero. This enables the jump statement to **always** be compiled into a jump table.
+The `switch` statement is similar to the classic `switch-case`, but with a few key differences. First, there are no case labels. The result of the expression at the top will be evaluated, and interpreted as a unsigned integer. It will then jump to the corresponding block, numbered starting from zero. This enables the switch to **always** be compiled into a jump table.
 
-For example, the expression for a `jump` statement for the inputs `[ 2, 4, 6, 8, 10 ]` would look something like this:
+For example, the expression for a `switch` for the inputs `[ 2, 4, 6, 8, 10 ]` would look something like this:
 
     sub(shr(input, 1), 1)
 
@@ -312,7 +312,7 @@ The arrow operator after a block denotes fall-through behaviour.
 
 **Example (notice the square brackets):**
 
-    jump n [
+    switch n [
         {
             printf("n is zero\n");
         },
@@ -373,7 +373,7 @@ Exceptions in C, yay!
 
 `error.c` uses macros to generate the error messages automatically.
 
-4. Including `.c` files
+**4.** Including `.c` files
 
 By including all other C files into one single file, the whole program is in one translation unit, which enables the C compiler to make much better optimizations. This is further improved by making all functions `static`, which tells the compiler that the function cannot be called externally.
 
@@ -436,7 +436,7 @@ output address.
 The same technique is also utilized with function calls, when a function
 is used before the parser has seen it's implementation.
 
-TODO: At this point `optimizer.c` might be added to perform simple
+**TODO**: At this point `optimizer.c` might be added to perform simple
 optimizations like constant folding or inlining.
 
 Generating actual machine code could also be an interesting project,

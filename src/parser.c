@@ -92,7 +92,7 @@ static i8 _parser_if(void);
 static i8 _parser_while(void);
 static i8 _parser_do_while(void);
 static i8 _parser_for(void);
-static i8 _parser_jump(void);
+static i8 _parser_switch(void);
 static i8 _parser_loop(void);
 static i8 _parser_break(void);
 static i8 _parser_continue(void);
@@ -345,7 +345,7 @@ static i8 _parser_statement(void)
 		break;
 
 	case TT_JUMP:
-		RETURN_IF(_parser_jump());
+		RETURN_IF(_parser_switch());
 		break;
 
 	case TT_DO:
@@ -747,7 +747,7 @@ static i8 _parser_for(void)
 	return 0;
 }
 
-static i8 _parser_jump(void)
+static i8 _parser_switch(void)
 {
 	return 0;
 }
