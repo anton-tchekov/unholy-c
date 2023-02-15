@@ -1,13 +1,3 @@
-static u32 fbti(f32 p)
-{
-	return *(u32 *)&p;
-}
-
-static f32 ibtf(u32 p)
-{
-	return *(f32 *)&p;
-}
-
 /* INTEGER */
 static u32 _add(u32 *p)
 {

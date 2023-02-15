@@ -70,3 +70,18 @@ static i8 _string_find(const char *str, const char *name)
 
 	return -1;
 }
+
+/* memcpy needed because of strict aliasing rules */
+static u32 fbti(f32 p)
+{
+	u32 i;
+	memcpy(&i, &p, 4);
+	return i;
+}
+
+static f32 ibtf(u32 p)
+{
+	f32 f;
+	memcpy(&f, &p, 4);
+	return f;
+}

@@ -45,11 +45,8 @@ Additionally, the first character can not be a number.
         var count;
     }
 
-Global variables are not supported.
-
-## Constants
-
-Global numeric constants must be defined at the beginning of the file, before all functions.
+Global variables must be defined at the beginning of the file, before all
+functions.
 
 **Example:**
 

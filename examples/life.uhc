@@ -1,51 +1,51 @@
+/* constants */
+var WIDTH, HEIGHT;
+
 fn main()
 {
-	var board, w, h;
+	var board1, board2;
 
-	board = 0x8000;
-	w = 40;
-	h = 20;
+	WIDTH = 40;
+	HEIGHT = 20;
 
-	init(board, w, h);
+	board1 = 0x8000;
+	board2 = 0x9000;
 
 	/* glider */
-	set(board, w, 2, 1, 'X');
-	set(board, w, 3, 2, 'X');
-	set(board, w, 1, 3, 'X');
-	set(board, w, 2, 3, 'X');
-	set(board, w, 3, 3, 'X');
+	board_set(board1, 2, 1, 1);
+	board_set(board1, 3, 2, 1);
+	board_set(board1, 1, 3, 1);
+	board_set(board1, 2, 3, 1);
+	board_set(board1, 3, 3, 1);
 
 	loop {
-		draw(board, w, h);
-		update(board, w, h);
+		board_draw(board1);
+		board_update(board1, board2);
+		board_draw(board2);
+		board_update(board2, board1);
 	}
 }
 
-fn update(board, w, h)
+fn board_update(board1, board2)
 {
-	var x, y, adj, board2;
-
-	board2 = 0x9000;
-	init(board2, w, h);
+	var x, y, adj;
 
 	y = 0;
-	while lt(y, h) {
+	while lt(y, HEIGHT) {
 		x = 0;
-		while lt(x, w) {
-			adj = neighbours(board, w, h, x, y);
-			if eq(adj, 3) {
-				set(board2, w, x, y, 'X');
-			}
-			elif lt(adj, 2) {
-				set(board2, w, x, y, ' ');
-			}
-			elif gt(adj, 3) {
-				set(board2, w, x, y, ' ');
+		while lt(x, WIDTH) {
+			adj = _neighbours(board1, x, y);
+			if lt(adj, 2) {
+				board_set(board2, x, y, 0);
 			}
 			elif eq(adj, 2) {
-				if get(board, w, h, x, y) {
-					set(board2, w, x, y, 'X');
-				}
+				board_set(board2, x, y, board_get(board1, x, y));
+			}
+			elif eq(adj, 3) {
+				board_set(board2, x, y, 1);
+			}
+			elif gt(adj, 3) {
+				board_set(board2, x, y, 0);
 			}
 
 			x = add(x, 1);
@@ -53,36 +53,19 @@ fn update(board, w, h)
 
 		y = add(y, 1);
 	}
-
-	my_memcpy(board, board2, mul(w, h));
 }
 
-fn my_memcpy(dest, src, bytes)
-{
-	var p1, p2;
-
-	p1 = add(dest, bytes);
-	p2 = add(src, bytes);
-
-	while gt(p1, dest)
-	{
-		p1 = sub(p1, 1);
-		p2 = sub(p2, 1);
-
-		w8(p1, ru8(p2));
-	}
-}
-
-fn draw(board, w, h)
+fn board_draw(board)
 {
 	var x, y;
 
 	clear();
+
 	y = 0;
-	while lt(y, h) {
+	while lt(y, HEIGHT) {
 		x = 0;
-		while lt(x, w) {
-			printc(ru8(add(board, add(mul(y, w), x))));
+		while lt(x, WIDTH) {
+			_draw_char(board_get(board, x, y));
 			x = add(x, 1);
 		}
 
@@ -91,65 +74,107 @@ fn draw(board, w, h)
 	}
 }
 
-fn init(board, w, h)
+fn board_set(board, x, y, val)
 {
-	var end;
-
-	end = add(board, mul(w, h));
-	while gt(end, board)
-	{
-		end = sub(end, 1);
-		w8(end, ' ');
+	if _check_bounds(x, y) {
+		return;
 	}
+
+	w8(_cell_ptr(board, x, y), val);
 }
 
-fn set(board, w, x, y, val)
+fn board_get(board, x, y)
 {
-	w8(add(board, add(mul(y, w), x)), val);
+	if _check_bounds(x, y) {
+		return 0;
+	}
+
+	return ru8(_cell_ptr(board, x, y));
 }
 
-fn get(board, w, h, x, y)
+fn _cell_ptr(board, x, y)
 {
-	if lt(x, 0) { return 0; }
-	if lt(y, 0) { return 0; }
-	if ge(x, w) { return 0; }
-	if ge(y, h) { return 0; }
-
-	return eq(ru8(add(board, add(mul(y, w), x))), 'X');
+	return add(board, add(mul(y, WIDTH), x));
 }
 
-fn neighbours(board, w, h, x, y)
+fn _draw_char(v)
 {
-	var count;
+	var c;
+
+	if v {
+		c = 'X';
+	}
+	else {
+		c = ' ';
+	}
+
+	printc(c);
+}
+
+fn _check_bounds(x, y)
+{
+	if lt(x, 0) {
+		return 1;
+	}
+
+	if lt(y, 0) {
+		return 1;
+	}
+
+	if ge(x, WIDTH) {
+		return 1;
+	}
+
+	if ge(y, HEIGHT) {
+		return 1;
+	}
+
+	return 0;
+}
+
+fn _neighbours(board, x, y)
+{
+	var count, left, right, top, bottom;
+
 	count = 0;
 
+	left = sub(x, 1);
+	right = add(x, 1);
+	top = sub(y, 1);
+	bottom = add(y, 1);
+
 	/* top */
-	if get(board, w, h, sub(x, 1), sub(y, 1)) {
+	if board_get(board, left, top) {
 		count = add(count, 1);
 	}
-	if get(board, w, h, x, sub(y, 1)) {
+
+	if board_get(board, x, top) {
 		count = add(count, 1);
 	}
-	if get(board, w, h, add(x, 1), sub(y, 1)) {
+
+	if board_get(board, right, top) {
 		count = add(count, 1);
 	}
 
 	/* middle */
-	if get(board, w, h, sub(x, 1), y) {
+	if board_get(board, left, y) {
 		count = add(count, 1);
 	}
-	if get(board, w, h, add(x, 1), y) {
+
+	if board_get(board, right, y) {
 		count = add(count, 1);
 	}
 
 	/* bottom */
-	if get(board, w, h, sub(x, 1), add(y, 1)) {
+	if board_get(board, left, bottom) {
 		count = add(count, 1);
 	}
-	if get(board, w, h, x, add(y, 1)) {
+
+	if board_get(board, x, bottom) {
 		count = add(count, 1);
 	}
-	if get(board, w, h, add(x, 1), add(y, 1)) {
+
+	if board_get(board, right, bottom) {
 		count = add(count, 1);
 	}
 

@@ -1,4 +1,4 @@
-#define OFFSET_CALL_MAIN 2
+#define OFFSET_CALL_MAIN 4
 
 typedef struct ADDRESS_STACK
 {
@@ -71,6 +71,7 @@ static i16 identifier_map_insert(IdentifierMap *map, u16 offset, char *key)
 
 typedef struct PARSER
 {
+	u8 NumGlobals;
 	u16 UsagesCount;
 	u16 Offset;
 	u8 LoopNesting;
@@ -102,7 +103,7 @@ static i8 _parser_action(void);
 static i8 _parser_fn_call(void);
 static i8 _parser_expression(void);
 static i8 _parser_fn(void);
-static i8 _parser_global(void);
+static i8 _parser_var(void);
 static void _parser_call_main(void);
 static i8 _parser_check_impl(void);
 static i8 _parser_main(void);
@@ -147,16 +148,19 @@ static i8 parser_compile(void)
 	_parser.BreakStack.Offset = OFFSET_BREAK_STACK;
 	_parser.ContinueStack.Offset = OFFSET_CONTINUE_STACK;
 
-	_parser_call_main();
-
 	RETURN_IF(tokenizer_next());
-
-	while(_token.Type != TT_FN)
+	while(_token.Type == TT_VAR)
 	{
-		EXPECT(TT_CONST, ERROR_EXPECTED_CONST);
-		RETURN_IF(_parser_global());
+		RETURN_IF(_parser_var());
 		RETURN_IF(tokenizer_next());
 	}
+
+	_parser.NumGlobals = _parser.Variables.Count;
+
+	_emit8(INSTR_DSP);
+	_emit8(_parser.NumGlobals);
+
+	_parser_call_main();
 
 	while(_token.Type != TT_NULL)
 	{
@@ -213,16 +217,6 @@ static i8 _parser_check_impl(void)
 	{
 		TRACE(ERROR_FN_UNDEFINED);
 	}
-
-	return 0;
-}
-
-static i8 _parser_global(void)
-{
-	RETURN_IF(tokenizer_next());
-	RETURN_IF(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier));
-	RETURN_IF(tokenizer_next());
-	//EXPECT('=', ERROR_EXPECTED_)
 
 	return 0;
 }
@@ -344,7 +338,7 @@ static i8 _parser_statement(void)
 		RETURN_IF(_parser_for());
 		break;
 
-	case TT_JUMP:
+	case TT_SWITCH:
 		RETURN_IF(_parser_switch());
 		break;
 
@@ -396,8 +390,18 @@ static i8 _parser_assign(void)
 	RETURN_IF(tokenizer_next());
 	RETURN_IF(_parser_expression());
 	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
-	_emit8(INSTR_POPL);
-	_emit8(i);
+
+	if(i < _parser.NumGlobals)
+	{
+		_emit8(INSTR_POPG);
+		_emit8(i);
+	}
+	else
+	{
+		_emit8(INSTR_POPL);
+		_emit8(i - _parser.NumGlobals);
+	}
+
 	return 0;
 }
 
@@ -507,6 +511,24 @@ static i8 _parser_fn_call(void)
 	return 0;
 }
 
+static i8 _parser_var(void)
+{
+	u8 count;
+
+	count = 0;
+	do
+	{
+		RETURN_IF(tokenizer_next());
+		EXPECT(TT_VAR_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
+		RETURN_IF(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier));
+		++count;
+		RETURN_IF(tokenizer_next());
+	}
+	while(_token.Type == ',');
+	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
+	return count;
+}
+
 static i8 _parser_fn_block(u8 local_vars)
 {
 #ifdef DEBUG
@@ -516,16 +538,9 @@ static i8 _parser_fn_block(u8 local_vars)
 	RETURN_IF(tokenizer_next());
 	while(_token.Type == TT_VAR)
 	{
-		do
-		{
-			RETURN_IF(tokenizer_next());
-			EXPECT(TT_VAR_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
-			RETURN_IF(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier));
-			++local_vars;
-			RETURN_IF(tokenizer_next());
-		}
-		while(_token.Type == ',');
-		EXPECT(';', ERROR_EXPECTED_SEMICOLON);
+		i8 rv;
+		RETURN_IF(rv = _parser_var());
+		local_vars += rv;
 		RETURN_IF(tokenizer_next());
 	}
 
@@ -598,8 +613,17 @@ static i8 _parser_expression(void)
 			TRACE(ERROR_UNDEFINED_IDENTIFIER);
 		}
 
-		_emit8(INSTR_PUSHL);
-		_emit8(i);
+		if(i < _parser.NumGlobals)
+		{
+			_emit8(INSTR_PUSHG);
+			_emit8(i);
+		}
+		else
+		{
+			_emit8(INSTR_PUSHL);
+			_emit8(i - _parser.NumGlobals);
+		}
+
 		RETURN_IF(tokenizer_next());
 	}
 	else if(_token.Type == TT_FN_IDENTIFIER)

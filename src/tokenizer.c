@@ -296,7 +296,7 @@ static i8 _tokenizer_float(i32 n)
 		c = _tokenizer_advance();
 	}
 
-	_token.Number = *(u32 *)&f;
+	_token.Number = fbti(f);
 	return 0;
 }
 
@@ -424,7 +424,7 @@ static void _tokenizer_debug(void)
 	}
 	else if(_token.Type == TT_NUMBER)
 	{
-		printf("%12d        %10f\n", _token.Number, *(f32 *)&_token.Number);
+		printf("%12d        %10f\n", _token.Number, ibtf(_token.Number));
 	}
 	else if(_token.Type >= 32)
 	{

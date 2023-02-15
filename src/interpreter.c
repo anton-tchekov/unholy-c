@@ -50,6 +50,16 @@ static u8 _debug_instruction(Interpreter *i)
 		size = 2;
 		break;
 
+	case INSTR_PUSHG:
+		printf("PUSHG %d\n", memory_r8(i->Segment + i->IP + 1));
+		size = 2;
+		break;
+
+	case INSTR_POPG:
+		printf("POPG %d\n", memory_r8(i->Segment + i->IP + 1));
+		size = 2;
+		break;
+
 	case INSTR_POP:
 		printf("POP\n");
 		size = 1;
@@ -268,6 +278,30 @@ static i8 interpreter_step(Interpreter *i)
 			offset = 4 * memory_r8(i->Segment + i->IP);
 			i->OP += 4;
 			memory_w32(i->Segment + i->FP - offset, memory_r32(i->Segment + i->OP));
+			i->IP += 1;
+		}
+		break;
+
+	case INSTR_PUSHG:
+		/* Push value from global variable to stack */
+		{
+			u16 offset;
+			i->IP += 1;
+			offset = 4 * memory_r8(i->Segment + i->IP);
+			memory_w32(i->Segment + i->OP, memory_r32(i->Segment + SP_START - offset));
+			i->OP -= 4;
+			i->IP += 1;
+		}
+		break;
+
+	case INSTR_POPG:
+		/* Pop value from stack to global variable */
+		{
+			u16 offset;
+			i->IP += 1;
+			offset = 4 * memory_r8(i->Segment + i->IP);
+			i->OP += 4;
+			memory_w32(i->Segment + SP_START - offset, memory_r32(i->Segment + i->OP));
 			i->IP += 1;
 		}
 		break;
