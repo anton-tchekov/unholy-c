@@ -11,7 +11,7 @@ INCLUDE=include
 DEPS=types
 SRC=src
 OBJ=obj
-OBJS=test
+OBJS=main
 
 _DEPS=$(patsubst %, $(INCLUDE)/%.h, $(DEPS))
 _OBJS=$(patsubst %, $(OBJ)/%.o, $(OBJS))

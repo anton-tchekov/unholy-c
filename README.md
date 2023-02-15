@@ -24,6 +24,12 @@
 
 `.uhc` for obvious reasons.
 
+## Example Code
+
+See `examples/` directory for code examples.
+
+- Conway's Game of Life: `life.uhc`
+
 ## Variables
 
 Local variables can be only be declared at the beginning of a function with the `var` keyword. Every local variable is 32-bit in size. Variables can not be initialized during declaration.
@@ -227,7 +233,19 @@ Curly braces are required for all control flow contstructs.
 
 ### Loops
 
-There are three types of loops:
+There are four types of loops:
+
+- **counting (not yet implemented)**
+
+```
+	for c from 'A' to 'Z' {
+		printf("%c\n", c);
+	}
+
+	for i from 0 to 100 step 5 {
+		printf("%d\n", i);
+	}
+```
 
 - **top-controlled**
 
@@ -271,7 +289,7 @@ There are three types of loops:
         printf("Your number %d\n", number);
     }
 
-### jump Statement
+### jump Statement (not yet implemented)
 
 The `jump` statement is similar to the classic `switch-case`, but with a few key differences. First, there are no case labels. The result of the expression at the top will be evaluated, and interpreted as a unsigned integer. It will then jump to the corresponding block, numbered starting from zero. This enables the jump statement to **always** be compiled into a jump table.
 
@@ -319,9 +337,11 @@ There are some unusual design decisions that I am going to explain here:
 
 **1.** `memory_XX` functions:
 
-One of the goals for this project to be able to be run on an AVR with external memory. Since the chips have very little internal RAM (eg. 2048 bytes for an ATMega328, the one on an Arduino UNO), I am using these functions to access
-the external memory. When compiling for an OS target, the external memory
-is simulated by an equally sized, flat u8-array.
+One of the goals for this project to be able to be run on an AVR with external
+memory (23LC1024). Since the chips have very little internal RAM (eg. 2048
+bytes for an ATMega328, the one on an Arduino UNO), I am using these functions
+to access the external memory. When compiling for an OS target, the external
+memory is simulated by an equally sized, flat u8-array.
 
 **2.** In some places, the Tokenizer does things that are actually the job of the parser, (best example: string literals)
 
@@ -355,7 +375,7 @@ Exceptions in C, yay!
 
 4. Including `.c` files
 
-By including all other C files into one single file, the whole program is in one translation unit. This enables the C compiler to make much better optimizations. This is further improved by making all functions `static`, which tells the compiler that the function cannot be called externally.
+By including all other C files into one single file, the whole program is in one translation unit, which enables the C compiler to make much better optimizations. This is further improved by making all functions `static`, which tells the compiler that the function cannot be called externally.
 
 This is essentially my adaptation of the "[SQLite Amalgamation](https://www.sqlite.org/amalgamation.html)"
 
@@ -370,85 +390,93 @@ Quote from the link:
 
 **Utility:**
 
-`types.h`: Contains integer type definitions and
+- `types.h`: Contains integer type definitions and platform dependant
 
-`error.c`: Error handling macros and error definitions
+- `error.c`: Error handling macros and error definitions
 
-`memory.c`: External memory access interface / emulation
+`TRACE` to throw a previously defined error\
+`RETURN_IF` to propagate the error\
+New errors are added in the `FOREACH_ERROR` macro, the preprocessor
+generates the enum and error messages automatically.
 
-`find.c`: Contains a function to find the position of a string in another,
-	delimiter separated string. Used to detect keywords and builtins
+- `util.c`: Misc. utility functions
 
-`instr.c`: Bytecode Instruction definitions
+`_string_find` is used to detect keywords and builtin functions
+by finding the position of a string in another, delimiter separated string.
 
-`token.c`: Token Type definitions like `TT_IF`, `TT_WHILE`, etc.
+- `memory.c`: External memory access interface / emulation
 
-`builtin.c`: Contains builtin functions
+- `instr.c`: Bytecode instruction definitions (e.g. `INSTR_CALL`)
+
+- `token.c`: Token type and keyword definitions like `TT_IF`, `TT_WHILE`, etc.
 
 **Main:**
 
-`tokenizer.c`: Extracts the next token from the source file (keyword, identifier, literal, etc.) and passes it to the parser.
+`builtin.c`: Contains builtin functions like `mul`, `sin`, `isupper`, etc.
 
-`parser.c`:
+`tokenizer.c`: Extracts the next token from the source file
+(keyword, identifier, literal, etc.) and passes it to the parser.
 
-`interpreter.c`:
+`parser.c`: Predictive recursive descent parser. Requests tokens from
+the Tokenizer and outputs bytecode instructions.
+
+An IdentifierMap stores the locations of identifiers
+like function and variable names in the source code.
+
+An AddressStack is used to handle break and continue statements.
+
+It is needed because the parser reads the file from start to finish in
+a single pass. So when a `break;` is encountered, at that point the
+parser does not know where the end of the loop is going to be.
+So the parser leaves a gap in the bytecode, and stores the location
+of the gap in the AddressStack. When the end of the loop is reached,
+the gap can be filled in with an unconditional jump to the current
+output address.
+
+The same technique is also utilized with function calls, when a function
+is used before the parser has seen it's implementation.
+
+TODO: At this point `optimizer.c` might be added to perform simple
+optimizations like constant folding or inlining.
+
+Generating actual machine code could also be an interesting project,
+however the current aim is to have a sort of scripting language for
+embedded systems with Harvard ISA that can only execute code from
+their flash memory so the interpreter part is to work around that.
+
+`interpreter.c`: Runs the bytecode
+
+The instruction set only needs 13 instructions.
+It uses two stacks, the regular call stack and an operand stack.
+I am still looking for a clean way to remove the need for
+two stacks and the parameter copying when calling a function.
 
 **Driver:**
 
-`main.c`: Currently contains legacy code. TODO
-
-`test.c`: Used for Testing
-
-TODO: merge main and test.
+`main.c`: Used for Testing/driving the main code
 
 ## Known Bugs
 
-- Functions / Variables same name?
 
 ## Untested
 
 
 ## TODO
 
-Please ignore this "scratch area"
-
-inc
-ins
-out_c
-out_s();
-
-fd = fopen(filename, mode)
-num = fread(fd, buffer, bytes)
-num = fwrite(fd, buffer, bytes)
-fclose(fd);
-fprintf(fd, "format", args)
-printf()
-
-write(stdio, "hello world", );
-
-
-
-stdio
-
 - for loops
-- Memory access functions
-- Global variables/constants
 - jump statement
+- global variables/constants
+- file i/o and printf
+- code examples
+- code cleanup
+- automated testing
+- optimizations
 
+fd = fopen(filename, mode);
+num = fread(fd, buffer, bytes);
+num = fwrite(fd, buffer, bytes);
+fclose(fd);
 
-III
-- i/o and file access / printf
-	%s   String
-	%c   Character
-	%f   Float
-		Optional pad both sides
-	%d   Integer
-	%x   Hex
-	%b   Binary
-		Optional pad left with zero or space
-
-JJJ
-- Add better Code Examples
-- Code Cleanup
-- Automated testing
-- Optimizations
+fprintf(fd, "format");
+printf("Your number: %d", 42);
+fwrite(stdio, "hello world", 11);

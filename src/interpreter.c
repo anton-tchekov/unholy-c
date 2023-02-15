@@ -7,7 +7,7 @@ typedef struct INTERPRETER
 	u16 SP, /* Stack pointer */
 		FP, /* Frame pointer */
 		IP, /* Instruction pointer */
-		OP; /* Operations pointer */
+		OP; /* Operand pointer */
 } Interpreter;
 
 #define COLOR_RED    "\033[1;31m"

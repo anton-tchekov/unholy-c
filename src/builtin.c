@@ -787,4 +787,3 @@ static u32 _builtin_call(u8 id, u32 *args)
 {
 	return (pgm_read_ptr(_builtins + id))(args);
 }
-

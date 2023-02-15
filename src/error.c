@@ -98,4 +98,3 @@ static const char *error_message(i8 code)
 
 	return pgm_read_ptr(_err_msgs + idx);
 }
-

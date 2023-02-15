@@ -91,6 +91,8 @@ static i8 _parser_block(void);
 static i8 _parser_if(void);
 static i8 _parser_while(void);
 static i8 _parser_do_while(void);
+static i8 _parser_for(void);
+static i8 _parser_jump(void);
 static i8 _parser_loop(void);
 static i8 _parser_break(void);
 static i8 _parser_continue(void);
@@ -100,7 +102,7 @@ static i8 _parser_action(void);
 static i8 _parser_fn_call(void);
 static i8 _parser_expression(void);
 static i8 _parser_fn(void);
-static i8 _parser_const(void);
+static i8 _parser_global(void);
 static void _parser_call_main(void);
 static i8 _parser_check_impl(void);
 static i8 _parser_main(void);
@@ -141,7 +143,6 @@ static i8 parser_compile(void)
 {
 	_parser.Variables.Offset = OFFSET_VARIABLES;
 	_parser.Functions.Offset = OFFSET_FUNCTIONS;
-	_parser.Constants.Offset = OFFSET_CONSTANTS;
 
 	_parser.BreakStack.Offset = OFFSET_BREAK_STACK;
 	_parser.ContinueStack.Offset = OFFSET_CONTINUE_STACK;
@@ -153,7 +154,7 @@ static i8 parser_compile(void)
 	while(_token.Type != TT_FN)
 	{
 		EXPECT(TT_CONST, ERROR_EXPECTED_CONST);
-		RETURN_IF(_parser_const());
+		RETURN_IF(_parser_global());
 		RETURN_IF(tokenizer_next());
 	}
 
@@ -216,10 +217,10 @@ static i8 _parser_check_impl(void)
 	return 0;
 }
 
-static i8 _parser_const(void)
+static i8 _parser_global(void)
 {
 	RETURN_IF(tokenizer_next());
-	RETURN_IF(identifier_map_insert(&_parser.Constants, _token.Number, _token.Identifier));
+	RETURN_IF(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier));
 	RETURN_IF(tokenizer_next());
 	//EXPECT('=', ERROR_EXPECTED_)
 
@@ -337,6 +338,14 @@ static i8 _parser_statement(void)
 
 	case TT_WHILE:
 		RETURN_IF(_parser_while());
+		break;
+
+	case TT_FOR:
+		RETURN_IF(_parser_for());
+		break;
+
+	case TT_JUMP:
+		RETURN_IF(_parser_jump());
 		break;
 
 	case TT_DO:
@@ -733,6 +742,15 @@ static i8 _parser_loop(void)
 	return 0;
 }
 
+static i8 _parser_for(void)
+{
+	return 0;
+}
+
+static i8 _parser_jump(void)
+{
+	return 0;
+}
 
 static i8 _parser_do_while(void)
 {
