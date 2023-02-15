@@ -344,62 +344,46 @@ static u32 _toupper(u32 *p)
 /* MEMORY */
 static u32 _w32(u32 *p)
 {
+	memory_w32(p[0], p[1]);
 	return 0;
-	(void)p;
 }
 
-static u32 _wu16(u32 *p)
+static u32 _w16(u32 *p)
 {
+	memory_w16(p[0], p[1]);
 	return 0;
-	(void)p;
 }
 
-static u32 _wu8(u32 *p)
+static u32 _w8(u32 *p)
 {
+	memory_w8(p[0], p[1]);
 	return 0;
-	(void)p;
-}
-
-static u32 _ws16(u32 *p)
-{
-	return 0;
-	(void)p;
-}
-
-static u32 _ws8(u32 *p)
-{
-	return 0;
-	(void)p;
 }
 
 static u32 _r32(u32 *p)
 {
-	return 0;
-	(void)p;
+	return memory_r32(p[1]);
 }
 
 static u32 _ru16(u32 *p)
 {
-	return 0;
-	(void)p;
+	return memory_r16(p[0]);
 }
 
 static u32 _ru8(u32 *p)
 {
-	return 0;
-	(void)p;
+	return memory_r8(p[0]);
 }
 
+/* sign extension! */
 static u32 _rs16(u32 *p)
 {
-	return 0;
-	(void)p;
+	return (i32)((i16)memory_r16(p[0]));
 }
 
 static u32 _rs8(u32 *p)
 {
-	return 0;
-	(void)p;
+	return (i32)((i8)memory_r8(p[0]));
 }
 
 static u32 _mcpy(u32 *p)
@@ -449,6 +433,20 @@ static u32 _print_number(u32 *p)
 {
 	return printf("PRINT NUMBER: %d\n", p[0]);
 }
+
+static u32 _printc(u32 *p)
+{
+	putc(p[0], stdout);
+	return 0;
+}
+
+static u32 _clear(u32 *p)
+{
+	printf("\033[H\033[J");
+	return 0;
+	(void)p;
+}
+
 
 static const i8 _num_parameters[] PROGMEM =
 {
@@ -528,10 +526,8 @@ static const i8 _num_parameters[] PROGMEM =
 
 	/* MEMORY */
 	2, /* w32  */
-	2, /* wu16 */
-	2, /* wu8  */
-	2, /* ws16 */
-	2, /* ws8  */
+	2, /* w16 */
+	2, /* w8  */
 	1, /* r32  */
 	1, /* ru16 */
 	1, /* ru8  */
@@ -549,6 +545,8 @@ static const i8 _num_parameters[] PROGMEM =
 	/* IO */
 	1, /* println */
 	1, /* print_number */
+	1, /* printc */
+	0, /* clear */
 };
 
 static u32 (*_builtins[])(u32 *) PROGMEM =
@@ -629,10 +627,8 @@ static u32 (*_builtins[])(u32 *) PROGMEM =
 
 	/* MEMORY */
 	_w32,
-	_wu16,
-	_wu8,
-	_ws16,
-	_ws8,
+	_w16,
+	_w8,
 	_r32,
 	_ru16,
 	_ru8,
@@ -649,7 +645,9 @@ static u32 (*_builtins[])(u32 *) PROGMEM =
 
 	/* IO */
 	_println,
-	_print_number
+	_print_number,
+	_printc,
+	_clear,
 };
 
 static const char _identifiers[] PROGMEM =
@@ -730,10 +728,8 @@ static const char _identifiers[] PROGMEM =
 
 	/* MEMORY  */
 	"w32\0"
-	"wu16\0"
-	"wu8\0"
-	"ws16\0"
-	"ws8\0"
+	"w16\0"
+	"w8\0"
 	"r32\0"
 	"ru16\0"
 	"ru8\0"
@@ -750,7 +746,9 @@ static const char _identifiers[] PROGMEM =
 
 	/* IO */
 	"println\0"
-	"print_number\0|";
+	"print_number\0"
+	"printc\0"
+	"clear\0|";
 
 #ifdef DEBUG
 

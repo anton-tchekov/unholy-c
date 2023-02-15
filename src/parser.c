@@ -200,9 +200,9 @@ static i8 _parser_check_impl(void)
 	{
 		if(_parser.FunctionAddrs[i] == 0)
 		{
-			/*printf("Undefined reference to `%.*s`\n",
-				_parser.Functions.Elements[i].Length,
-				_parser.Functions.Elements[i].Key);*/
+			printf("Undefined reference to `%.*s`\n",
+				10,
+				_output + OFFSET_INPUT + memory_r16(_parser.Functions.Offset + 2 * i));
 
 			fail = 1;
 		}
@@ -394,7 +394,7 @@ static i8 _parser_assign(void)
 
 static void _add_fn_usage(void)
 {
-	_parser.FunctionUsages[_parser.UsagesCount++] = _parser.Offset + 2;
+	_parser.FunctionUsages[_parser.UsagesCount++] = _parser.Offset;
 }
 
 static i8 _parser_action(void)
@@ -419,7 +419,9 @@ static i8 _parser_fn_call(void)
 
 	i16 i, addr;
 	i8 args, parameters;
+	u8 impl;
 
+	impl = 1;
 	args = 0;
 	addr = 0;
 
@@ -436,7 +438,7 @@ static i8 _parser_fn_call(void)
 		if(!(addr = _parser.FunctionAddrs[i]))
 		{
 			/* Not implemented yet */
-			_add_fn_usage();
+			impl = 0;
 			addr = i;
 		}
 	}
@@ -444,9 +446,8 @@ static i8 _parser_fn_call(void)
 	{
 		/* New function */
 		i = _identifier_map_insert(&_parser.Functions, _token.Number);
-		_add_fn_usage();
 		_parser.FunctionAddrs[i] = 0;
-		_parser.FunctionParams[i] = args;
+		impl = 0;
 		addr = i;
 		parameters = -1;
 	}
@@ -473,14 +474,26 @@ static i8 _parser_fn_call(void)
 	}
 
 	/* Check number of arguments */
-	if(parameters > 0 && args != parameters)
+	if(parameters >= 0)
 	{
-		TRACE(ERROR_FN_NUM_ARGS);
+		if(args != parameters)
+		{
+			TRACE(ERROR_FN_NUM_ARGS);
+		}
+	}
+	else
+	{
+		_parser.FunctionParams[i] = args;
 	}
 
 	/* Call function */
 	_emit8(INSTR_CALL);
 	_emit8(args);
+	if(!impl)
+	{
+		_add_fn_usage();
+	}
+
 	_emit16(addr);
 	return 0;
 }
@@ -637,8 +650,9 @@ static i8 _parser_if(void)
 		{
 			RETURN_IF(tokenizer_next());
 			RETURN_IF(_parser_block());
-			memory_w16(OFFSET_CODE + idx_end, _parser.Offset);
 		}
+
+		memory_w16(OFFSET_CODE + idx_end, _parser.Offset);
 	}
 	else
 	{

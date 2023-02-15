@@ -1,6 +1,7 @@
 #include "types.h"
 
 #define OFFSET_CODE           0x0000
+#define OFFSET_RODATA         0x4000
 #define OFFSET_DATA           0x8000
 #define OFFSET_INPUT          0x10000
 #define OFFSET_BREAK_STACK    0x20000

@@ -254,7 +254,7 @@ static i8 interpreter_step(Interpreter *i)
 			u16 offset;
 			i->IP += 1;
 			offset = 4 * memory_r8(i->Segment + i->IP);
-			memory_w32(i->Segment + i->OP, memory_r32(i->Segment + i->FP + offset));
+			memory_w32(i->Segment + i->OP, memory_r32(i->Segment + i->FP - offset));
 			i->OP -= 4;
 			i->IP += 1;
 		}
@@ -267,7 +267,7 @@ static i8 interpreter_step(Interpreter *i)
 			i->IP += 1;
 			offset = 4 * memory_r8(i->Segment + i->IP);
 			i->OP += 4;
-			memory_w32(i->Segment + i->FP + offset, memory_r32(i->Segment + i->OP));
+			memory_w32(i->Segment + i->FP - offset, memory_r32(i->Segment + i->OP));
 			i->IP += 1;
 		}
 		break;
@@ -358,7 +358,7 @@ static i8 interpreter_step(Interpreter *i)
 				for(j = 0; j < args; ++j)
 				{
 					i->OP += 4;
-					memory_w32(i->Segment + i->SP - 4 * ((args - 1) + j), memory_r32(i->Segment + i->OP));
+					memory_w32(i->Segment + i->SP - 4 * ((args - 1) - j), memory_r32(i->Segment + i->OP));
 				}
 
 				/* Jump to function */

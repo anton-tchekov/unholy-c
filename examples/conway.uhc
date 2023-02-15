@@ -1,0 +1,158 @@
+fn main()
+{
+	var board, w, h;
+
+	board = 0x8000;
+	w = 40;
+	h = 20;
+
+	init(board, w, h);
+
+	/* glider */
+	set(board, w, 2, 1, 'X');
+	set(board, w, 3, 2, 'X');
+	set(board, w, 1, 3, 'X');
+	set(board, w, 2, 3, 'X');
+	set(board, w, 3, 3, 'X');
+
+	loop {
+		draw(board, w, h);
+		update(board, w, h);
+	}
+}
+
+fn update(board, w, h)
+{
+	var x, y, adj, board2;
+
+	board2 = 0x9000;
+	init(board2, w, h);
+
+	y = 0;
+	while lt(y, h) {
+		x = 0;
+		while lt(x, w) {
+			adj = neighbours(board, w, h, x, y);
+			if eq(adj, 3) {
+				set(board2, w, x, y, 'X');
+			}
+			elif lt(adj, 2) {
+				set(board2, w, x, y, ' ');
+			}
+			elif gt(adj, 3) {
+				set(board2, w, x, y, ' ');
+			}
+			elif eq(adj, 2) {
+				if get(board, w, h, x, y) {
+					set(board2, w, x, y, 'X');
+				}
+			}
+
+			x = add(x, 1);
+		}
+
+		y = add(y, 1);
+	}
+
+	my_memcpy(board, board2, mul(w, h));
+}
+
+fn my_memcpy(dest, src, bytes)
+{
+	var p1, p2;
+
+	p1 = add(dest, bytes);
+	p2 = add(src, bytes);
+
+	while gt(p1, dest)
+	{
+		p1 = sub(p1, 1);
+		p2 = sub(p2, 1);
+
+		w8(p1, ru8(p2));
+	}
+}
+
+fn draw(board, w, h)
+{
+	var x, y;
+
+	clear();
+	y = 0;
+	while lt(y, h) {
+		x = 0;
+		while lt(x, w) {
+			printc(ru8(add(board, add(mul(y, w), x))));
+			x = add(x, 1);
+		}
+
+		printc('\n');
+		y = add(y, 1);
+	}
+}
+
+fn init(board, w, h)
+{
+	var end;
+
+	end = add(board, mul(w, h));
+	while gt(end, board)
+	{
+		end = sub(end, 1);
+		w8(end, ' ');
+	}
+}
+
+fn set(board, w, x, y, val)
+{
+	w8(add(board, add(mul(y, w), x)), val);
+}
+
+fn get(board, w, h, x, y)
+{
+	if lt(x, 0) { return 0; }
+	if lt(y, 0) { return 0; }
+	if ge(x, w) { return 0; }
+	if ge(y, h) { return 0; }
+
+	return eq(ru8(add(board, add(mul(y, w), x))), 'X');
+}
+
+fn neighbours(board, w, h, x, y)
+{
+	var count;
+	count = 0;
+
+	/* top */
+	if get(board, w, h, sub(x, 1), sub(y, 1)) {
+		count = add(count, 1);
+	}
+	if get(board, w, h, x, sub(y, 1)) {
+		count = add(count, 1);
+	}
+	if get(board, w, h, add(x, 1), sub(y, 1)) {
+		count = add(count, 1);
+	}
+
+	/* middle */
+	if get(board, w, h, sub(x, 1), y) {
+		count = add(count, 1);
+	}
+	if get(board, w, h, add(x, 1), y) {
+		count = add(count, 1);
+	}
+
+	/* bottom */
+	if get(board, w, h, sub(x, 1), add(y, 1)) {
+		count = add(count, 1);
+	}
+	if get(board, w, h, x, add(y, 1)) {
+		count = add(count, 1);
+	}
+	if get(board, w, h, add(x, 1), add(y, 1)) {
+		count = add(count, 1);
+	}
+
+	return count;
+}
+

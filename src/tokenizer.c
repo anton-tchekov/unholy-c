@@ -389,13 +389,13 @@ static i8 _tokenizer_string_literal(void)
 	u8 v;
 	u16 offset;
 
-	offset = (OFFSET_DATA - OFFSET_CODE) + _tokenizer.DataOffset;
+	offset = (OFFSET_RODATA - OFFSET_CODE) + _tokenizer.DataOffset;
 	do
 	{
 		while(_tokenizer_advance() != '\"')
 		{
 			RETURN_IF(_tokenizer_char(&v));
-			memory_w8(OFFSET_DATA + _tokenizer.DataOffset, v);
+			memory_w8(OFFSET_RODATA + _tokenizer.DataOffset, v);
 			_tokenizer.DataOffset += 1;
 		}
 
@@ -404,7 +404,7 @@ static i8 _tokenizer_string_literal(void)
 	}
 	while(_tokenizer_current() == '\"');
 
-	memory_w8(OFFSET_DATA + _tokenizer.DataOffset, '\0');
+	memory_w8(OFFSET_RODATA + _tokenizer.DataOffset, '\0');
 	_tokenizer.DataOffset += 1;
 
 	_token.Type = TT_NUMBER;

@@ -403,32 +403,45 @@ TODO: merge main and test.
 
 ## Known Bugs
 
+- Functions / Variables same name?
 
 ## Untested
 
 
 ## TODO
 
-EEE
-- add memory access functions
+Please ignore this "scratch area"
 
-FFF
-- global constants
+inc
+ins
+out_c
+out_s();
 
-GGG
+fd = fopen(filename, mode)
+num = fread(fd, buffer, bytes)
+num = fwrite(fd, buffer, bytes)
+fclose(fd);
+fprintf(fd, "format", args)
+printf()
+
+write(stdio, "hello world", );
+
+
+
+stdio
+
+- for loops
+- Memory access functions
+- Global variables/constants
 - jump statement
 
-HHH
-- i/o and file access
 
 III
-- printf
+- i/o and file access / printf
 	%s   String
 	%c   Character
-
 	%f   Float
 		Optional pad both sides
-
 	%d   Integer
 	%x   Hex
 	%b   Binary
@@ -439,7 +452,3 @@ JJJ
 - Code Cleanup
 - Automated testing
 - Optimizations
-
-
-## Goals for today:
-- Steps E,F,G
