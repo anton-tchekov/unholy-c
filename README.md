@@ -475,6 +475,7 @@ two stacks and the parameter copying when calling a function.
 - for loops
 - switch
 - better and more helpful error messages
+- more resiliency (prevent out-of-bounds accesses and integer overflows)
 
 ### Builtin Functions
 - file i/o and safe printf
