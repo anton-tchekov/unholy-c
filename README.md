@@ -18,8 +18,6 @@
 
 # Unholy C Language Documentation
 
-- *[ It's a reference to the programming language Holy C of Temple OS ]*
-
 ## Source File Extension
 
 `.uhc` for obvious reasons.
@@ -32,7 +30,9 @@ See `examples/` directory for code examples.
 
 ## Variables
 
-Local variables can be only be declared at the beginning of a function with the `var` keyword. Every local variable is 32-bit in size. Variables can not be initialized during declaration.
+Local variables can be only be declared at the beginning of a function with the `var`
+keyword. Every local variable is 32-bit in size. Variables can not be initialized
+during declaration.
 
 Variable names can only contain with letters, numbers or underscores.
 Additionally, the first character can not be a number.
@@ -75,7 +75,9 @@ However, there are typed literals.
 - Character: `'A'`, `'7'`, `'\n'`, `'\\'`, `'!'`, etc.
 
 - String (char array): `"Hello World!"`
-	- Note: The string will be placed in the programs readonly data area. In an expression, it will evaluate to a pointer to the first character of the string. The string is terminated by a `'\0'` character.
+**Note**: The string will be placed in the programs readonly data area. In an
+expression, it will evaluate to a pointer to the first character of the string.
+The string is terminated by a `'\0'` character.
 
 ## Comments
 
@@ -288,7 +290,11 @@ loop {
 
 ### switch Branch (not yet implemented)
 
-The `switch` statement is similar to the classic `switch-case`, but with a few key differences. First, there are no case labels. The result of the expression at the top will be evaluated, and interpreted as a unsigned integer. It will then jump to the corresponding block, numbered starting from zero. This enables the switch to **always** be compiled into a jump table.
+The `switch` statement is similar to the classic `switch-case`, but with a few key
+differences. First, there are no case labels. The result of the expression at the
+top will be evaluated, and interpreted as a unsigned integer. It will then jump to
+the corresponding block, numbered starting from zero. This enables the switch to
+**always** be compiled into a jump table.
 
 For example, the expression for a `switch` for the inputs `[ 2, 4, 6, 8, 10 ]` would look something like this:
 
@@ -340,9 +346,11 @@ bytes for an ATMega328, the one on an Arduino UNO), I am using these functions
 to access the external memory. When compiling for an OS target, the external
 memory is simulated by an equally sized, flat u8-array.
 
-**2.** In some places, the Tokenizer does things that are actually the job of the parser, (best example: string literals)
+**2.** In some places, the Tokenizer does things that are actually the job of
+the parser, (best example: string literals)
 
-It makes the code shorter, more efficient and easier to understand by eliminating unneccessary passing around of data.
+It makes the code shorter, more efficient and easier to understand by eliminating
+unneccessary passing around of data.
 
 **3.** (Excessive?) Use of macros: `RETURN_IF`, `TRACE`, `EXPECT`, etc.
 
@@ -372,7 +380,10 @@ Exceptions in C, yay!
 
 **4.** Including `.c` files
 
-By including all other C files into one single file, the whole program is in one translation unit, which enables the C compiler to make much better optimizations. This is further improved by making all functions `static`, which tells the compiler that the function cannot be called externally.
+By including all other C files into one single file, the whole program is in one
+translation unit, which enables the C compiler to make much better optimizations.
+This is further improved by making all functions `static`, which tells the compiler
+that the function cannot be called externally.
 
 This is essentially my adaptation of the "[SQLite Amalgamation](https://www.sqlite.org/amalgamation.html)"
 
@@ -460,20 +471,26 @@ two stacks and the parameter copying when calling a function.
 
 ## TODO
 
+### Features
 - for loops
-- jump statement
-- global variables/constants
-- file i/o and printf
-- code examples
-- code cleanup
-- automated testing
-- optimizations
+- switch
+- better and more helpful error messages
 
-fd = fopen(filename, mode);
-num = fread(fd, buffer, bytes);
-num = fwrite(fd, buffer, bytes);
-fclose(fd);
+### Builtin Functions
+- file i/o and safe printf
+- memory functions (memcpy, memchr etc.) and docs
+- string functions and docs
 
-fprintf(fd, "format");
-printf("Your number: %d", 42);
-fwrite(stdio, "hello world", 11);
+### Documentation / Utility
+- data structure / algorithm standard library
+- more code examples
+- proofread docs
+
+### Refactoring / Cleanup
+- move functions addrs etc. to xmem
+
+### Platform
+- Test on microcontroller
+- UART / SD-Card / External RAM
+- Test and compare execution speed
+
