@@ -21,6 +21,16 @@ static void address_stack_push(AddressStack *as, u16 addr)
 	++as->Top;
 }
 
+static void address_stack_shift(AddressStack *as, u8 pos, u16 offset)
+{
+	u8 i;
+	for(i = pos; i < as->Top; ++i)
+	{
+		u32 addr = as->Offset + 2 * i;
+		memory_w16(addr, memory_r16(addr) + offset);
+	}
+}
+
 typedef struct IDENTIFIER_MAP
 {
 	u32 Offset;
@@ -74,7 +84,7 @@ typedef struct PARSER
 	u8 NumGlobals;
 	u16 UsagesCount;
 	u16 Offset;
-	u8 LoopNesting;
+	u8 BreakNesting, ContinueNesting;
 	AddressStack BreakStack, ContinueStack;
 	IdentifierMap Variables, Functions, Constants;
 
@@ -138,6 +148,22 @@ static void _emit32(u32 v)
 static void _skip(u8 bytes)
 {
 	_parser.Offset += bytes;
+}
+
+static void _shift(u16 pos, u16 amount)
+{
+	u16 p, s;
+
+	p = _parser.Offset;
+	s = p + amount;
+	while(p > pos)
+	{
+		--p;
+		--s;
+		memory_w8(OFFSET_CODE + s, memory_r8(OFFSET_CODE + p));
+	}
+
+	_parser.Offset += amount;
 }
 
 static i8 parser_compile(void)
@@ -703,7 +729,8 @@ static i8 _parser_while(void)
 	printf("\t\t\t\t\t\tPARSER WHILE\n");
 #endif
 
-	u16 idx_before, idx_branch, prev_break, prev_continue;
+	u16 idx_before, idx_branch;
+	u8 prev_break, prev_continue;
 
 	idx_before = _parser.Offset;
 
@@ -720,9 +747,11 @@ static i8 _parser_while(void)
 	prev_break = _parser.BreakStack.Top;
 	prev_continue = _parser.ContinueStack.Top;
 
-	++_parser.LoopNesting;
+	++_parser.BreakNesting;
+	++_parser.ContinueNesting;
 	RETURN_IF(_parser_block());
-	--_parser.LoopNesting;
+	--_parser.BreakNesting;
+	--_parser.ContinueNesting;
 
 	/* Jump back to loop condition */
 	_emit8(INSTR_JMP);
@@ -743,7 +772,8 @@ static i8 _parser_loop(void)
 	printf("\t\t\t\t\t\tPARSER LOOP\n");
 #endif
 
-	u16 idx_before, prev_break, prev_continue;
+	u16 idx_before;
+	u8 prev_break, prev_continue;
 
 	idx_before = _parser.Offset;
 
@@ -751,10 +781,12 @@ static i8 _parser_loop(void)
 	prev_break = _parser.BreakStack.Top;
 	prev_continue = _parser.ContinueStack.Top;
 
-	++_parser.LoopNesting;
+	++_parser.BreakNesting;
+	++_parser.ContinueNesting;
 	RETURN_IF(tokenizer_next());
 	RETURN_IF(_parser_block());
-	--_parser.LoopNesting;
+	--_parser.BreakNesting;
+	--_parser.ContinueNesting;
 
 	/* Jump back to loop condition */
 	_emit8(INSTR_JMP);
@@ -773,6 +805,58 @@ static i8 _parser_for(void)
 
 static i8 _parser_switch(void)
 {
+	u8 i, count, prev_break;
+	u16 pos, offset, jt[256];
+
+	RETURN_IF(tokenizer_next());
+	RETURN_IF(_parser_expression());
+	EXPECT('[', ERROR_EXPECTED_L_BRACKET);
+
+	prev_break = _parser.BreakStack.Top;
+	pos = _parser.Offset;
+	count = 0;
+	do
+	{
+		jt[count++] = _parser.Offset;
+		RETURN_IF(tokenizer_next());
+		EXPECT('{', ERROR_EXPECTED_L_BRACE);
+		RETURN_IF(_parser_block());
+		RETURN_IF(tokenizer_next());
+		if(_token.Type == ',')
+		{
+			/* break */
+			_emit8(INSTR_JMP);
+			address_stack_push(&_parser.BreakStack, _parser.Offset);
+			_skip(2);
+		}
+		else if(_token.Type == '=')
+		{
+			/* fallthrough */
+			RETURN_IF(tokenizer_next());
+			EXPECT('>', ERROR_UNEXPECTED_TOKEN);
+		}
+	} while(_token.Type != ']');
+
+	/* make space for jump table */
+	offset = 2 + 2 * count;
+	_shift(pos, offset);
+
+	/* generate jump table */
+	memory_w8(OFFSET_CODE + pos, INSTR_JT);
+	++pos;
+	memory_w8(OFFSET_CODE + pos, count);
+	++pos;
+	for(i = 0; i < count; ++i)
+	{
+		memory_w16(OFFSET_CODE + pos, jt[i] + offset);
+		pos += 2;
+	}
+
+	/* fix break addresses */
+	address_stack_shift(&_parser.BreakStack, prev_break, offset);
+
+	/* handle break */
+	address_stack_update(&_parser.BreakStack, prev_break, _parser.Offset);
 	return 0;
 }
 
@@ -792,9 +876,11 @@ static i8 _parser_do_while(void)
 	prev_break = _parser.BreakStack.Top;
 	prev_continue = _parser.ContinueStack.Top;
 
-	++_parser.LoopNesting;
+	++_parser.BreakNesting;
+	++_parser.ContinueNesting;
 	RETURN_IF(_parser_block());
-	--_parser.LoopNesting;
+	--_parser.BreakNesting;
+	--_parser.ContinueNesting;
 
 	/* Parse condition */
 	RETURN_IF(tokenizer_next());
@@ -822,7 +908,7 @@ static i8 _parser_break(void)
 
 	RETURN_IF(tokenizer_next());
 	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
-	if(!_parser.LoopNesting)
+	if(!_parser.BreakNesting)
 	{
 		TRACE(ERROR_INV_BREAK);
 	}
@@ -841,7 +927,7 @@ static i8 _parser_continue(void)
 
 	RETURN_IF(tokenizer_next());
 	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
-	if(!_parser.LoopNesting)
+	if(!_parser.ContinueNesting)
 	{
 		TRACE(ERROR_INV_CONTINUE);
 	}

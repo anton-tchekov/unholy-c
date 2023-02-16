@@ -86,6 +86,7 @@ static const char *_token_type_string(i8 code)
 		case TT_TRUE:           return "TT_TRUE";
 		case TT_FALSE:          return "TT_FALSE";
 		case TT_CONST:          return "TT_CONST";
+		case TT_SWITCH:         return "TT_SWITCH";
 	}
 
 	return "TT_UNDEFINED";

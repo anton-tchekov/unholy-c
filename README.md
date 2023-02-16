@@ -61,7 +61,7 @@ The meaning of the bits in a variable is defined only by what
 
 Doing `var1 = var2` simply copies the bits from var2 into var1.
 
-However, there are typed literals.
+However, there are typed literals:
 
 - Integer:
 	- Decimal: `-25`, `0`, `1`, `77`, etc.
@@ -75,6 +75,7 @@ However, there are typed literals.
 - Character: `'A'`, `'7'`, `'\n'`, `'\\'`, `'!'`, etc.
 
 - String (char array): `"Hello World!"`
+
 **Note**: The string will be placed in the programs readonly data area. In an
 expression, it will evaluate to a pointer to the first character of the string.
 The string is terminated by a `'\0'` character.
@@ -246,6 +247,8 @@ for i from 0 to 100 step 5 {
 }
 ```
 
+**Note**: for loops only work with signed integers.
+
 - **top-controlled**
 
 ```
@@ -260,7 +263,7 @@ while le(i, 10) {
 
 ```
 do {
-    c = get_char()
+    c = get_char();
 } while ne(c, '\n');
 ```
 
@@ -476,6 +479,8 @@ two stacks and the parameter copying when calling a function.
 - switch
 - better and more helpful error messages
 - more resiliency (prevent out-of-bounds accesses and integer overflows)
+- function pointers
+- memory segments
 
 ### Builtin Functions
 - file i/o and safe printf

@@ -65,6 +65,20 @@ static u8 _debug_instruction(Interpreter *i)
 		size = 1;
 		break;
 
+	case INSTR_JT:
+		{
+			u8 j, cnt;
+			cnt = memory_r8(i->Segment + i->IP + 1);
+			printf("JT %d: ", cnt);
+			for(j = 0; j < cnt; ++j)
+			{
+				printf("%d%c ", memory_r16(i->Segment + i->IP + 2 + 2 * j), j < cnt - 1 ? ',' : '\n');
+			}
+
+			size = 2 + 2 * cnt;
+		}
+		break;
+
 	case INSTR_JZ:
 		printf("JZ %d\n", memory_r16(i->Segment + i->IP + 1));
 		size = 3;
@@ -303,6 +317,27 @@ static i8 interpreter_step(Interpreter *i)
 			i->OP += 4;
 			memory_w32(i->Segment + SP_START - offset, memory_r32(i->Segment + i->OP));
 			i->IP += 1;
+		}
+		break;
+
+	case INSTR_JT:
+		{
+			u32 v;
+			u8 cnt;
+
+			i->OP += 4;
+			v = memory_r32(i->Segment + i->OP);
+
+			i->IP += 1;
+			cnt = memory_r8(i->Segment + i->IP);
+
+			if(v > cnt)
+			{
+				return -1;
+			}
+
+			i->IP += 1;
+			i->IP = memory_r16(i->Segment + i->IP + 2 * v);
 		}
 		break;
 
