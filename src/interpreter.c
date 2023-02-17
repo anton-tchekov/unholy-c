@@ -130,6 +130,20 @@ static u8 _debug_instruction(Interpreter *i)
 	return size;
 }
 
+static void _disasm(Interpreter *i, u16 len)
+{
+	u16 prev;
+	prev = i->IP;
+	while(i->IP < len)
+	{
+		i->IP += _debug_instruction(i);
+	}
+
+	i->IP = prev;
+}
+
+#ifdef DEBUG_INTERPRETER
+
 static void _debug_stack(Interpreter *i)
 {
 	u32 addr, start, end, slot;
@@ -172,18 +186,6 @@ static void _debug_stack(Interpreter *i)
 	printf("+------+-------+------+------------+----------+\n");
 }
 
-static void _disasm(Interpreter *i, u16 len)
-{
-	u16 prev;
-	prev = i->IP;
-	while(i->IP < len)
-	{
-		i->IP += _debug_instruction(i);
-	}
-
-	i->IP = prev;
-}
-
 static void _debug_op_stack(Interpreter *i)
 {
 	u32 addr, start, end, slot;
@@ -220,6 +222,8 @@ static void _debug_op_stack(Interpreter *i)
 
 	printf("+------+-------+------+------------+----------+\n");
 }
+
+#endif
 
 static void interpreter_init(Interpreter *i, u32 segment)
 {

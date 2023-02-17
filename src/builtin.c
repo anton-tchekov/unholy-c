@@ -424,6 +424,7 @@ static u32 _print_string_ext(u32 *p)
 {
 	/*printf("%s\n", _output + p[0]);*/
 	return 0;
+	(void)p;
 }
 
 static u32 _print_dec(u32 *p)
@@ -436,6 +437,7 @@ static u32 _print_dec_ext(u32 *p)
 {
 	/*printf("%d\n", p[0]);*/
 	return 0;
+	(void)p;
 }
 
 static u32 _print_hex(u32 *p)
@@ -448,6 +450,7 @@ static u32 _print_hex_ext(u32 *p)
 {
 	/*printf("%X\n", p[0]);*/
 	return 0;
+	(void)p;
 }
 
 static u32 _print_float(u32 *p)
@@ -460,6 +463,7 @@ static u32 _print_float_ext(u32 *p)
 {
 	/*printf("%5.6f\n", p[0]);*/
 	return 0;
+	(void)p;
 }
 
 static u32 _print_char(u32 *p)
