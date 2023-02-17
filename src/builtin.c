@@ -414,17 +414,55 @@ static u32 _rand(u32 *p)
 }
 
 /* IO */
-static u32 _println(u32 *p)
+static u32 _print_string(u32 *p)
 {
-	return printf("%s\n", _output + p[0]);
+	printf("%s\n", _output + p[0]);
+	return 0;
 }
 
-static u32 _print_number(u32 *p)
+static u32 _print_string_ext(u32 *p)
 {
-	return printf("PRINT NUMBER: %d\n", p[0]);
+	/*printf("%s\n", _output + p[0]);*/
+	return 0;
 }
 
-static u32 _printc(u32 *p)
+static u32 _print_dec(u32 *p)
+{
+	printf("%d\n", p[0]);
+	return 0;
+}
+
+static u32 _print_dec_ext(u32 *p)
+{
+	/*printf("%d\n", p[0]);*/
+	return 0;
+}
+
+static u32 _print_hex(u32 *p)
+{
+	printf("%X\n", p[0]);
+	return 0;
+}
+
+static u32 _print_hex_ext(u32 *p)
+{
+	/*printf("%X\n", p[0]);*/
+	return 0;
+}
+
+static u32 _print_float(u32 *p)
+{
+	printf("%f\n", ibtf(p[0]));
+	return 0;
+}
+
+static u32 _print_float_ext(u32 *p)
+{
+	/*printf("%5.6f\n", p[0]);*/
+	return 0;
+}
+
+static u32 _print_char(u32 *p)
 {
 	putc(p[0], stdout);
 	return 0;
@@ -436,7 +474,6 @@ static u32 _clear(u32 *p)
 	return 0;
 	(void)p;
 }
-
 
 static const i8 _num_parameters[] PROGMEM =
 {
@@ -533,9 +570,15 @@ static const i8 _num_parameters[] PROGMEM =
 	0, /* rand  */
 
 	/* IO */
-	1, /* println */
-	1, /* print_number */
-	1, /* printc */
+	1, /* print_string */
+	1, /* print_string_ext */
+	1, /* print_dec */
+	1, /* print_dec_ext */
+	1, /* print_hex */
+	1, /* print_hex_ext */
+	1, /* print_float */
+	1, /* print_float_ext */
+	1, /* print_char */
 	0, /* clear */
 };
 
@@ -634,9 +677,15 @@ static u32 (*_builtins[])(u32 *) PROGMEM =
 	_rand,
 
 	/* IO */
-	_println,
-	_print_number,
-	_printc,
+	_print_string,
+	_print_string_ext,
+	_print_dec,
+	_print_dec_ext,
+	_print_hex,
+	_print_hex_ext,
+	_print_float,
+	_print_float_ext,
+	_print_char,
 	_clear,
 };
 
@@ -735,9 +784,15 @@ static const char _identifiers[] PROGMEM =
 	"rand\0"
 
 	/* IO */
-	"println\0"
-	"print_number\0"
-	"printc\0"
+	"print_string\0"
+	"print_string_ext\0"
+	"print_dec\0"
+	"print_dec_ext\0"
+	"print_hex\0"
+	"print_hex_ext\0"
+	"print_float\0"
+	"print_float_ext\0"
+	"print_char\0"
 	"clear\0|";
 
 #ifdef DEBUG

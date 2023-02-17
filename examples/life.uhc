@@ -30,10 +30,8 @@ fn board_update(board1, board2)
 {
 	var x, y, adj;
 
-	y = 0;
-	while lt(y, HEIGHT) {
-		x = 0;
-		while lt(x, WIDTH) {
+	for y = 0 to HEIGHT {
+		for x = 0 to WIDTH {
 			adj = _neighbours(board1, x, y);
 			if lt(adj, 2) {
 				board_set(board2, x, y, 0);
@@ -47,11 +45,7 @@ fn board_update(board1, board2)
 			elif gt(adj, 3) {
 				board_set(board2, x, y, 0);
 			}
-
-			x = add(x, 1);
 		}
-
-		y = add(y, 1);
 	}
 }
 
@@ -60,17 +54,12 @@ fn board_draw(board)
 	var x, y;
 
 	clear();
-
-	y = 0;
-	while lt(y, HEIGHT) {
-		x = 0;
-		while lt(x, WIDTH) {
+	for y = 0 to HEIGHT {
+		for x = 0 to WIDTH {
 			_draw_char(board_get(board, x, y));
-			x = add(x, 1);
 		}
 
-		printc('\n');
-		y = add(y, 1);
+		print_char('\n');
 	}
 }
 
@@ -108,7 +97,7 @@ fn _draw_char(v)
 		c = ' ';
 	}
 
-	printc(c);
+	print_char(c);
 }
 
 fn _check_bounds(x, y)

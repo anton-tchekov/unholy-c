@@ -1,20 +1,45 @@
 fn main()
 {
-	switch 0 [
-		{
-			println("0");
-		} =>
-		{
-			break;
-			println("1");
-		},
-		{
-			println("Hello 2");
-		},
-		{
-			println("This 3");
-		}
-	]
+	var i;
+
+	i = 0;
+	while lt(i, 4) {
+		switch i [
+			{
+				println("0");
+			} =>
+			{
+				switch i [
+					{
+						println("0");
+					} =>
+					{
+						println("zwei");
+						break;
+						println("1");
+					},
+					{
+						println("Hello 2");
+					},
+					{
+						println("This 3");
+					}
+				]
+
+				println("zwei");
+				break;
+				println("1");
+			},
+			{
+				println("Hello 2");
+			},
+			{
+				println("This 3");
+			}
+		]
+
+		i = add(i, 1);
+	}
 
 	println("end");
 }
