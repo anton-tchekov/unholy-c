@@ -18,6 +18,8 @@
 
 # Unholy C Language Documentation
 
+![Logo](logo.png)
+
 ## Source File Extension
 
 `.uhc` for obvious reasons.
