@@ -78,7 +78,7 @@ However, there are typed literals:
 
 - String (char array): `"Hello World!"`
 
-**Note**: The string will be placed in the programs readonly data area. In an
+**Note:** The string will be placed in the programs readonly data area. In an
 expression, it will evaluate to a pointer to the first character of the string.
 The string is terminated by a `'\0'` character.
 
@@ -249,7 +249,7 @@ for i from 0 to 100 step 5 {
 }
 ```
 
-**Note**: for loops only work with signed integers.
+**Note:** for loops only work with signed integers.
 
 - **top-controlled**
 
