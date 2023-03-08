@@ -52,8 +52,8 @@ functions.
 
 **Example:**
 
-    const ANSWER = 42;
-    const PI = 3.1416;
+    var ANSWER = 42;
+    var PI = 3.1416;
 
 ## Types
 
@@ -335,8 +335,6 @@ The arrow operator after a block denotes fall-through behaviour.
         }
     ]
 
-
-
 # Development
 
 ## Design Decisions
@@ -468,36 +466,39 @@ two stacks and the parameter copying when calling a function.
 
 `main.c`: Used for Testing/driving the main code
 
-## Known Bugs
-
-
-## Untested
-
-
 ## TODO
 
 ### Features
 - for loops
-- better and more helpful error messages
-- more resiliency (prevent out-of-bounds accesses and integer overflows)
 - function pointers
-- memory segments
+- better and more helpful error messages
+- switch-case
 
 ### Builtin Functions
-- file i/o and safe printf
-- memory functions (memcpy, memchr etc.) and docs
-- string functions and docs
+- memory functions (memcpy, memchr, etc.)
+- string functions (strcpy, strchr, etc.)
+- data structure / algorithm standard library
+	- prerequisite: function pointers
+	- sorting, hashing, etc.
+
+- file i/o
+	- prerequisite: SD-Card abstraction
+
+- terminal i/o (printf, etc.)
+	- prerequisite: UART abstraction
 
 ### Documentation / Utility
-- data structure / algorithm standard library
 - more code examples
 - proofread docs
 
-### Refactoring / Cleanup
-- move functions addrs etc. to xmem
-
 ### Platform
 - Test on microcontroller
-- UART / SD-Card / External RAM
+- UART []
+- SD-Card []
+- External RAM [DONE]
 - Test and compare execution speed
 
+### Known Bugs
+- for loop step not working correctly
+
+### Untested

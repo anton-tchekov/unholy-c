@@ -43,8 +43,6 @@ int main(int argc, char **argv)
 	i8 ret;
 	FILE *fp;
 
-	/*memcpy(_output, code, sizeof(code));*/
-
 	if(argc != 2)
 	{
 		return 1;
@@ -70,7 +68,7 @@ int main(int argc, char **argv)
 	}
 
 	Interpreter i;
-	interpreter_init(&i, OFFSET_CODE);
+	interpreter_init(&i);
 
 	_disasm(&i, _parser.Offset);
 
@@ -109,8 +107,7 @@ int main(int argc, char **argv)
 {
 	NanoC nanoc;
 	u8 *program, *data;
-	int32_t ret;
-	int length;
+	i32 ret, length;
 	char *src;
 	FILE *fp;
 

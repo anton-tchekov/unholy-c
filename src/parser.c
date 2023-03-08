@@ -1,9 +1,9 @@
-#define OFFSET_CALL_MAIN 4
-
+/* --- ADDRESS STACK ---*/
+/* for `break;` and `continue;` statements */
 typedef struct ADDRESS_STACK
 {
 	u8 Top;
-	u32 Offset;
+	u16 Offset;
 } AddressStack;
 
 static void address_stack_update(AddressStack *as, u8 prev, u16 addr)
@@ -11,20 +11,22 @@ static void address_stack_update(AddressStack *as, u8 prev, u16 addr)
 	while(as->Top > prev)
 	{
 		--as->Top;
-		memory_w16(OFFSET_CODE + memory_r16(as->Offset + 2 * as->Top), addr);
+		memory_w16(BANK_INTERPRETER,
+			OFFSET_CODE + memory_r16(BANK_PARSER, as->Offset + 2 * as->Top), addr);
 	}
 }
 
 static void address_stack_push(AddressStack *as, u16 addr)
 {
-	memory_w16(as->Offset + 2 * as->Top, addr);
+	memory_w16(BANK_PARSER, as->Offset + 2 * as->Top, addr);
 	++as->Top;
 }
 
+/* --- IDENTIFIER MAP --- */
+/* for storing variable and function names */
 typedef struct IDENTIFIER_MAP
 {
-	u32 Offset;
-	u16 Count;
+	u16 Count, Offset;
 } IdentifierMap;
 
 static i16 identifier_map_find(IdentifierMap *map, char *key)
@@ -34,14 +36,14 @@ static i16 identifier_map_find(IdentifierMap *map, char *key)
 	for(i = 0; i < map->Count; ++i)
 	{
 		p = key;
-		offset = memory_r16(map->Offset + 2 * i);
-		while((c = *p) && (r = memory_r8(OFFSET_INPUT + offset)) == c)
+		offset = memory_r16(BANK_PARSER, map->Offset + 2 * i);
+		while((c = *p) && (r = memory_r8(BANK_INPUT, OFFSET_INPUT + offset)) == c)
 		{
 			++p;
 			++offset;
 		}
 
-		r = memory_r8(OFFSET_INPUT + offset);
+		r = memory_r8(BANK_INPUT, OFFSET_INPUT + offset);
 		if(c == '\0' && !is_identifier_char(r))
 		{
 			return i;
@@ -53,7 +55,7 @@ static i16 identifier_map_find(IdentifierMap *map, char *key)
 
 static i16 _identifier_map_insert(IdentifierMap *map, u16 offset)
 {
-	memory_w16(map->Offset + 2 * map->Count, offset);
+	memory_w16(BANK_PARSER, map->Offset + 2 * map->Count, offset);
 	return map->Count++;
 }
 
@@ -67,20 +69,26 @@ static i16 identifier_map_insert(IdentifierMap *map, u16 offset, char *key)
 	return _identifier_map_insert(map, offset);
 }
 
-#define MAX_FUNCTIONS 256
+/* --- EXPECT --- */
+/* consume expected token or return error */
+#define EXPECT(TYPE, ERROR) \
+	do \
+	{ \
+		if(_token.Type != TYPE) \
+		{ \
+			TRACE(ERROR); \
+		} \
+	} while(0)
 
+#define OFFSET_CALL_MAIN 4
+
+/* --- PARSER --- */
 typedef struct PARSER
 {
-	u8 NumGlobals;
-	u16 UsagesCount;
-	u16 Offset;
-	u8 BreakNesting, ContinueNesting;
+	u8 NumGlobals, BreakNesting, ContinueNesting;
+	u16 UsagesCount, Offset;
 	AddressStack BreakStack, ContinueStack;
 	IdentifierMap Variables, Functions, Constants;
-
-	u8 FunctionParams[MAX_FUNCTIONS];
-	u16 FunctionAddrs[MAX_FUNCTIONS];
-	u16 FunctionUsages[MAX_FUNCTIONS];
 } Parser;
 
 static Parser _parser;
@@ -108,30 +116,58 @@ static void _parser_call_main(void);
 static i8 _parser_check_impl(void);
 static i8 _parser_main(void);
 
-#define EXPECT(TYPE, ERROR) \
-	do \
-	{ \
-		if(_token.Type != TYPE) \
-		{ \
-			TRACE(ERROR); \
-		} \
-	} while(0)
+/* --- FUNCTIONS --- */
+static u8 _fn_params_get(u16 idx)
+{
+	return memory_r8(BANK_PARSER, OFFSET_FUNCTION_PARAMS + idx);
+}
 
+static void _fn_params_set(u16 idx, u8 parameters)
+{
+	memory_w8(BANK_PARSER, OFFSET_FUNCTION_PARAMS + idx, parameters);
+}
+
+static u16 _fn_addr_get(u16 idx)
+{
+	return memory_r16(BANK_PARSER, OFFSET_FUNCTION_ADDRS + 2 * idx);
+}
+
+static void _fn_addr_set(u16 idx, u16 addr)
+{
+	memory_w16(BANK_PARSER, OFFSET_FUNCTION_ADDRS + 2 * idx, addr);
+}
+
+static u16 _fn_usage_get(u16 idx)
+{
+	return memory_r16(BANK_PARSER, OFFSET_FUNCTION_USAGES + 2 * idx);
+}
+
+static void _fn_usage_set(u16 idx, u16 addr)
+{
+	memory_w16(BANK_PARSER, OFFSET_FUNCTION_USAGES + 2 * idx, addr);
+}
+
+static void _fn_usage_add(void)
+{
+	_fn_usage_set(_parser.UsagesCount++, _parser.Offset);
+}
+
+/* --- EMIT --- */
 static void _emit8(u8 v)
 {
-	memory_w8(OFFSET_CODE + _parser.Offset, v);
+	memory_w8(BANK_INTERPRETER, OFFSET_CODE + _parser.Offset, v);
 	_parser.Offset += 1;
 }
 
 static void _emit16(u16 v)
 {
-	memory_w16(OFFSET_CODE + _parser.Offset, v);
+	memory_w16(BANK_INTERPRETER, OFFSET_CODE + _parser.Offset, v);
 	_parser.Offset += 2;
 }
 
 static void _emit32(u32 v)
 {
-	memory_w32(OFFSET_CODE + _parser.Offset, v);
+	memory_w32(BANK_INTERPRETER, OFFSET_CODE + _parser.Offset, v);
 	_parser.Offset += 4;
 }
 
@@ -140,6 +176,7 @@ static void _skip(u8 bytes)
 	_parser.Offset += bytes;
 }
 
+/* --- PARSER --- */
 static i8 parser_compile(void)
 {
 	_parser.Variables.Offset = OFFSET_VARIABLES;
@@ -191,7 +228,8 @@ static i8 _parser_main(void)
 		TRACE(ERROR_FN_UNDEFINED);
 	}
 
-	memory_w16(OFFSET_CODE + OFFSET_CALL_MAIN, _parser.FunctionAddrs[i]);
+	memory_w16(BANK_INTERPRETER,
+		OFFSET_CODE + OFFSET_CALL_MAIN, _fn_addr_get(i));
 	return 0;
 }
 
@@ -203,12 +241,10 @@ static i8 _parser_check_impl(void)
 	fail = 0;
 	for(i = 0; i < _parser.Functions.Count; ++i)
 	{
-		if(_parser.FunctionAddrs[i] == 0)
+		if(!_fn_addr_get(i))
 		{
-			printf("Undefined reference to `%.*s`\n",
-				10,
-				_output + OFFSET_INPUT + memory_r16(_parser.Functions.Offset + 2 * i));
-
+			/* _output + OFFSET_INPUT + memory_r16(_parser.Functions.Offset + 2 * i) */
+			printf("Undefined reference to `???`\n");
 			fail = 1;
 		}
 	}
@@ -242,13 +278,13 @@ static i8 _parser_fn(void)
 	else
 	{
 		used = 1;
-		if(_parser.FunctionAddrs[i])
+		if(_fn_addr_get(i))
 		{
 			TRACE(ERROR_FN_REDEFINITION);
 		}
 	}
 
-	_parser.FunctionAddrs[i] = _parser.Offset;
+	_fn_addr_set(i, _parser.Offset);
 
 	parameters = 0;
 	RETURN_IF(tokenizer_next());
@@ -276,28 +312,29 @@ static i8 _parser_fn(void)
 	if(used)
 	{
 		u16 j;
-		if(parameters != _parser.FunctionParams[i])
+		if(parameters != _fn_params_get(i))
 		{
 			TRACE(ERROR_FN_NUM_ARGS);
 		}
 
 		for(j = 0; j < _parser.UsagesCount; ++j)
 		{
-			if(memory_r16(_parser.FunctionUsages[j]) == i)
+			u16 usage = _fn_usage_get(j);
+			if(memory_r16(BANK_INTERPRETER, usage) == i)
 			{
-				memory_w16(_parser.FunctionUsages[j], _parser.FunctionAddrs[i]);
+				memory_w16(BANK_INTERPRETER, usage, _fn_addr_get(i));
 			}
 		}
 	}
 	else
 	{
-		_parser.FunctionParams[i] = parameters;
+		_fn_params_set(i, parameters);
 	}
 
 	RETURN_IF(_parser_fn_block(parameters));
 
 	/* No return statement */
-	if(memory_r8(OFFSET_CODE + _parser.Offset - 1) != INSTR_RET)
+	if(memory_r8(BANK_INTERPRETER, OFFSET_CODE + _parser.Offset - 1) != INSTR_RET)
 	{
 		_emit8(INSTR_PUSHI8);
 		_emit8(0);
@@ -422,11 +459,6 @@ static i8 _parser_assign(void)
 	return 0;
 }
 
-static void _add_fn_usage(void)
-{
-	_parser.FunctionUsages[_parser.UsagesCount++] = _parser.Offset;
-}
-
 static i8 _parser_action(void)
 {
 #ifdef DEBUG
@@ -464,8 +496,8 @@ static i8 _parser_fn_call(void)
 	else if((i = identifier_map_find(&_parser.Functions, _token.Identifier)) >= 0)
 	{
 		/* Already defined function */
-		parameters = _parser.FunctionParams[i];
-		if(!(addr = _parser.FunctionAddrs[i]))
+		parameters = _fn_params_get(i);
+		if(!(addr = _fn_addr_get(i)))
 		{
 			/* Not implemented yet */
 			impl = 0;
@@ -476,7 +508,7 @@ static i8 _parser_fn_call(void)
 	{
 		/* New function */
 		i = _identifier_map_insert(&_parser.Functions, _token.Number);
-		_parser.FunctionAddrs[i] = 0;
+		_fn_addr_set(i, 0);
 		impl = 0;
 		addr = i;
 		parameters = -1;
@@ -513,7 +545,7 @@ static i8 _parser_fn_call(void)
 	}
 	else
 	{
-		_parser.FunctionParams[i] = args;
+		_fn_params_set(i, args);
 	}
 
 	/* Call function */
@@ -521,7 +553,7 @@ static i8 _parser_fn_call(void)
 	_emit8(args);
 	if(!impl)
 	{
-		_add_fn_usage();
+		_fn_usage_add();
 	}
 
 	_emit16(addr);
@@ -680,7 +712,7 @@ static i8 _parser_if(void)
 		_skip(2);
 
 		/* Jump to else/elif block if false */
-		memory_w16(OFFSET_CODE + idx_cond, _parser.Offset);
+		memory_w16(BANK_INTERPRETER, OFFSET_CODE + idx_cond, _parser.Offset);
 
 		if(_token.Type == TT_ELIF)
 		{
@@ -692,13 +724,13 @@ static i8 _parser_if(void)
 			RETURN_IF(_parser_block());
 		}
 
-		memory_w16(OFFSET_CODE + idx_end, _parser.Offset);
+		memory_w16(BANK_INTERPRETER, OFFSET_CODE + idx_end, _parser.Offset);
 	}
 	else
 	{
 		/* Reset state */
 		_tokenizer = state;
-		memory_w16(OFFSET_CODE + idx_cond, _parser.Offset);
+		memory_w16(BANK_INTERPRETER, OFFSET_CODE + idx_cond, _parser.Offset);
 	}
 
 	return 0;
@@ -739,7 +771,7 @@ static i8 _parser_while(void)
 	_emit16(idx_before);
 
 	/* Fill in exit address */
-	memory_w16(OFFSET_CODE + idx_branch, _parser.Offset);
+	memory_w16(BANK_INTERPRETER, OFFSET_CODE + idx_branch, _parser.Offset);
 
 	/* Handle break and continue statements */
 	address_stack_update(&_parser.BreakStack, prev_break, _parser.Offset);
@@ -867,7 +899,7 @@ static i8 _parser_for(void)
 	_emit16(idx_before);
 
 	/* Fill in exit address */
-	memory_w16(OFFSET_CODE + idx_branch, _parser.Offset);
+	memory_w16(BANK_INTERPRETER, OFFSET_CODE + idx_branch, _parser.Offset);
 
 	/* Handle break and continue statements */
 	address_stack_update(&_parser.BreakStack, prev_break, _parser.Offset);
@@ -878,7 +910,7 @@ static i8 _parser_for(void)
 static i8 _parser_switch(void)
 {
 	u8 i, count, prev_break;
-	u16 idx_skip, jt[256];
+	u16 idx_skip, jt[64];
 
 	RETURN_IF(tokenizer_next());
 	RETURN_IF(_parser_expression());
@@ -922,7 +954,7 @@ static i8 _parser_switch(void)
 	_skip(2);
 
 	/* generate jump table */
-	memory_w16(OFFSET_CODE + idx_skip, _parser.Offset);
+	memory_w16(BANK_INTERPRETER, OFFSET_CODE + idx_skip, _parser.Offset);
 	_emit8(INSTR_JT);
 	_emit8(count);
 	for(i = 0; i < count; ++i)

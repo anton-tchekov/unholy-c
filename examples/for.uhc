@@ -1,11 +1,7 @@
 fn main()
 {
-	var i, j;
+	var i;
 	for i = 'A' to 'Z' {
-		for j = 'Z' to 'A' step -1 {
-			print_char(j);
-		}
-
-		print_char('\n');
+		print_char(i);
 	}
 }

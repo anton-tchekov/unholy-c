@@ -334,46 +334,46 @@ static u32 _toupper(u32 *p)
 /* MEMORY */
 static u32 _w32(u32 *p)
 {
-	memory_w32(p[0], p[1]);
+	memory_w32(BANK_INTERPRETER, p[0], p[1]);
 	return 0;
 }
 
 static u32 _w16(u32 *p)
 {
-	memory_w16(p[0], p[1]);
+	memory_w16(BANK_INTERPRETER, p[0], p[1]);
 	return 0;
 }
 
 static u32 _w8(u32 *p)
 {
-	memory_w8(p[0], p[1]);
+	memory_w8(BANK_INTERPRETER, p[0], p[1]);
 	return 0;
 }
 
 static u32 _r32(u32 *p)
 {
-	return memory_r32(p[1]);
+	return memory_r32(BANK_INTERPRETER, p[1]);
 }
 
 static u32 _ru16(u32 *p)
 {
-	return memory_r16(p[0]);
+	return memory_r16(BANK_INTERPRETER, p[0]);
 }
 
 static u32 _ru8(u32 *p)
 {
-	return memory_r8(p[0]);
+	return memory_r8(BANK_INTERPRETER, p[0]);
 }
 
 /* sign extension! */
 static u32 _rs16(u32 *p)
 {
-	return (i32)((i16)memory_r16(p[0]));
+	return (i32)((i16)memory_r16(BANK_INTERPRETER, p[0]));
 }
 
 static u32 _rs8(u32 *p)
 {
-	return (i32)((i8)memory_r8(p[0]));
+	return (i32)((i8)memory_r8(BANK_INTERPRETER, p[0]));
 }
 
 static u32 _mcpy(u32 *p)

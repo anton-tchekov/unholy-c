@@ -4,7 +4,7 @@
 
 typedef struct POSITION
 {
-	int32_t Col, Row;
+	i16 Col, Row;
 } Position;
 
 typedef struct TOKEN
@@ -17,7 +17,7 @@ typedef struct TOKEN
 
 typedef struct TOKENIZER
 {
-	u32 InputOffset, LineBegin, DataOffset;
+	u16 InputOffset, LineBegin, DataOffset;
 	Position Pos;
 	char Current;
 } Tokenizer;
@@ -47,7 +47,7 @@ static u8 is_identifier_char(char c)
 
 static void _tokenizer_read(void)
 {
-	_tokenizer.Current = memory_r8(OFFSET_INPUT + _tokenizer.InputOffset);
+	_tokenizer.Current = memory_r8(BANK_INPUT, OFFSET_INPUT + _tokenizer.InputOffset);
 	if(_tokenizer.Current == '\n')
 	{
 		++_tokenizer.Pos.Row;
@@ -58,7 +58,7 @@ static void _tokenizer_read(void)
 
 static char _tokenizer_lookahead(void)
 {
-	return memory_r8(OFFSET_INPUT + _tokenizer.InputOffset + 1);
+	return memory_r8(BANK_INPUT, OFFSET_INPUT + _tokenizer.InputOffset + 1);
 }
 
 static char _tokenizer_advance(void)
@@ -395,7 +395,7 @@ static i8 _tokenizer_string_literal(void)
 		while(_tokenizer_advance() != '\"')
 		{
 			RETURN_IF(_tokenizer_char(&v));
-			memory_w8(OFFSET_RODATA + _tokenizer.DataOffset, v);
+			memory_w8(BANK_INTERPRETER, OFFSET_RODATA + _tokenizer.DataOffset, v);
 			_tokenizer.DataOffset += 1;
 		}
 
@@ -404,7 +404,7 @@ static i8 _tokenizer_string_literal(void)
 	}
 	while(_tokenizer_current() == '\"');
 
-	memory_w8(OFFSET_RODATA + _tokenizer.DataOffset, '\0');
+	memory_w8(BANK_INTERPRETER, OFFSET_RODATA + _tokenizer.DataOffset, '\0');
 	_tokenizer.DataOffset += 1;
 
 	_token.Type = TT_NUMBER;

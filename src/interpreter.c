@@ -3,7 +3,6 @@
 
 typedef struct INTERPRETER
 {
-	u32 Segment;
 	u16 SP, /* Stack pointer */
 		FP, /* Frame pointer */
 		IP, /* Instruction pointer */
@@ -18,7 +17,7 @@ static u8 _debug_instruction(Interpreter *i)
 {
 	u8 size = 0;
 	printf("\n         %5d | %04X | " COLOR_RED, i->IP, i->IP);
-	switch(memory_r8(i->Segment + i->IP))
+	switch(memory_r8(BANK_INTERPRETER, i->IP))
 	{
 	case INSTR_HALT:
 		printf("HALT\n");
@@ -26,37 +25,37 @@ static u8 _debug_instruction(Interpreter *i)
 		break;
 
 	case INSTR_PUSHI8:
-		printf("PUSHI8 %d\n", memory_r8(i->Segment + i->IP + 1));
+		printf("PUSHI8 %d\n", memory_r8(BANK_INTERPRETER, i->IP + 1));
 		size = 2;
 		break;
 
 	case INSTR_PUSHI16:
-		printf("PUSHI16 %d\n", memory_r16(i->Segment + i->IP + 1));
+		printf("PUSHI16 %d\n", memory_r16(BANK_INTERPRETER, i->IP + 1));
 		size = 3;
 		break;
 
 	case INSTR_PUSHI32:
-		printf("PUSHI32 %d\n", memory_r32(i->Segment + i->IP + 1));
+		printf("PUSHI32 %d\n", memory_r32(BANK_INTERPRETER, i->IP + 1));
 		size = 5;
 		break;
 
 	case INSTR_PUSHL:
-		printf("PUSHL %d\n", memory_r8(i->Segment + i->IP + 1));
+		printf("PUSHL %d\n", memory_r8(BANK_INTERPRETER, i->IP + 1));
 		size = 2;
 		break;
 
 	case INSTR_POPL:
-		printf("POPL %d\n", memory_r8(i->Segment + i->IP + 1));
+		printf("POPL %d\n", memory_r8(BANK_INTERPRETER, i->IP + 1));
 		size = 2;
 		break;
 
 	case INSTR_PUSHG:
-		printf("PUSHG %d\n", memory_r8(i->Segment + i->IP + 1));
+		printf("PUSHG %d\n", memory_r8(BANK_INTERPRETER, i->IP + 1));
 		size = 2;
 		break;
 
 	case INSTR_POPG:
-		printf("POPG %d\n", memory_r8(i->Segment + i->IP + 1));
+		printf("POPG %d\n", memory_r8(BANK_INTERPRETER, i->IP + 1));
 		size = 2;
 		break;
 
@@ -68,11 +67,11 @@ static u8 _debug_instruction(Interpreter *i)
 	case INSTR_JT:
 		{
 			u8 j, cnt;
-			cnt = memory_r8(i->Segment + i->IP + 1);
+			cnt = memory_r8(BANK_INTERPRETER, i->IP + 1);
 			printf("JT %d: ", cnt);
 			for(j = 0; j < cnt; ++j)
 			{
-				printf("%d%c ", memory_r16(i->Segment + i->IP + 2 + 2 * j), j < cnt - 1 ? ',' : '\n');
+				printf("%d%c ", memory_r16(BANK_INTERPRETER, i->IP + 2 + 2 * j), j < cnt - 1 ? ',' : '\n');
 			}
 
 			size = 2 + 2 * cnt;
@@ -80,24 +79,24 @@ static u8 _debug_instruction(Interpreter *i)
 		break;
 
 	case INSTR_JZ:
-		printf("JZ %d\n", memory_r16(i->Segment + i->IP + 1));
+		printf("JZ %d\n", memory_r16(BANK_INTERPRETER, i->IP + 1));
 		size = 3;
 		break;
 
 	case INSTR_JNZ:
-		printf("JNZ %d\n", memory_r16(i->Segment + i->IP + 1));
+		printf("JNZ %d\n", memory_r16(BANK_INTERPRETER, i->IP + 1));
 		size = 3;
 		break;
 
 	case INSTR_JMP:
-		printf("JMP %d\n", memory_r16(i->Segment + i->IP + 1));
+		printf("JMP %d\n", memory_r16(BANK_INTERPRETER, i->IP + 1));
 		size = 3;
 		break;
 
 	case INSTR_CALL:
 		{
-			u8 args = memory_r8(i->Segment + i->IP + 1);
-			i16 addr = memory_r16(i->Segment + i->IP + 2);
+			u8 args = memory_r8(BANK_INTERPRETER, i->IP + 1);
+			i16 addr = memory_r16(BANK_INTERPRETER, i->IP + 2);
 			if(addr < 0)
 			{
 				printf("CALL %s\n", _builtin_name(-addr - 1));
@@ -116,7 +115,7 @@ static u8 _debug_instruction(Interpreter *i)
 		break;
 
 	case INSTR_DSP:
-		printf("DSP %d\n", memory_r8(i->Segment + i->IP + 1));
+		printf("DSP %d\n", memory_r8(BANK_INTERPRETER, i->IP + 1));
 		size = 2;
 		break;
 
@@ -225,10 +224,9 @@ static void _debug_op_stack(Interpreter *i)
 
 #endif
 
-static void interpreter_init(Interpreter *i, u32 segment)
+static void interpreter_init(Interpreter *i)
 {
 	/* Empty descending stack */
-	i->Segment = segment;
 	i->OP = OP_START;
 	i->SP = SP_START;
 	i->FP = i->SP;
@@ -246,7 +244,7 @@ static i8 interpreter_step(Interpreter *i)
 	_debug_instruction(i);
 #endif
 
-	switch(memory_r8(i->Segment + i->IP))
+	switch(memory_r8(BANK_INTERPRETER, i->IP))
 	{
 	case INSTR_HALT:
 		/* Finish program */
@@ -255,7 +253,7 @@ static i8 interpreter_step(Interpreter *i)
 	case INSTR_PUSHI8:
 		/* Push 8-bit immediate value to the stack */
 		i->IP += 1;
-		memory_w32(i->Segment + i->OP, memory_r8(i->Segment + i->IP));
+		memory_w32(BANK_INTERPRETER, i->OP, memory_r8(BANK_INTERPRETER, i->IP));
 		i->OP -= 4;
 		i->IP += 1;
 		break;
@@ -263,7 +261,7 @@ static i8 interpreter_step(Interpreter *i)
 	case INSTR_PUSHI16:
 		/* Push 16-bit immediate value to the stack */
 		i->IP += 1;
-		memory_w32(i->Segment + i->OP, memory_r16(i->Segment + i->IP));
+		memory_w32(BANK_INTERPRETER, i->OP, memory_r16(BANK_INTERPRETER, i->IP));
 		i->OP -= 4;
 		i->IP += 2;
 		break;
@@ -271,7 +269,7 @@ static i8 interpreter_step(Interpreter *i)
 	case INSTR_PUSHI32:
 		/* Push 32-bit immediate value to the stack */
 		i->IP += 1;
-		memory_w32(i->Segment + i->OP, memory_r32(i->Segment + i->IP));
+		memory_w32(BANK_INTERPRETER, i->OP, memory_r32(BANK_INTERPRETER, i->IP));
 		i->OP -= 4;
 		i->IP += 4;
 		break;
@@ -281,8 +279,8 @@ static i8 interpreter_step(Interpreter *i)
 		{
 			u16 offset;
 			i->IP += 1;
-			offset = 4 * memory_r8(i->Segment + i->IP);
-			memory_w32(i->Segment + i->OP, memory_r32(i->Segment + i->FP - offset));
+			offset = 4 * memory_r8(BANK_INTERPRETER, i->IP);
+			memory_w32(BANK_INTERPRETER, i->OP, memory_r32(BANK_INTERPRETER, i->FP - offset));
 			i->OP -= 4;
 			i->IP += 1;
 		}
@@ -293,9 +291,9 @@ static i8 interpreter_step(Interpreter *i)
 		{
 			u16 offset;
 			i->IP += 1;
-			offset = 4 * memory_r8(i->Segment + i->IP);
+			offset = 4 * memory_r8(BANK_INTERPRETER, i->IP);
 			i->OP += 4;
-			memory_w32(i->Segment + i->FP - offset, memory_r32(i->Segment + i->OP));
+			memory_w32(BANK_INTERPRETER, i->FP - offset, memory_r32(BANK_INTERPRETER, i->OP));
 			i->IP += 1;
 		}
 		break;
@@ -305,8 +303,8 @@ static i8 interpreter_step(Interpreter *i)
 		{
 			u16 offset;
 			i->IP += 1;
-			offset = 4 * memory_r8(i->Segment + i->IP);
-			memory_w32(i->Segment + i->OP, memory_r32(i->Segment + SP_START - offset));
+			offset = 4 * memory_r8(BANK_INTERPRETER, i->IP);
+			memory_w32(BANK_INTERPRETER, i->OP, memory_r32(BANK_INTERPRETER, SP_START - offset));
 			i->OP -= 4;
 			i->IP += 1;
 		}
@@ -317,9 +315,9 @@ static i8 interpreter_step(Interpreter *i)
 		{
 			u16 offset;
 			i->IP += 1;
-			offset = 4 * memory_r8(i->Segment + i->IP);
+			offset = 4 * memory_r8(BANK_INTERPRETER, i->IP);
 			i->OP += 4;
-			memory_w32(i->Segment + SP_START - offset, memory_r32(i->Segment + i->OP));
+			memory_w32(BANK_INTERPRETER, SP_START - offset, memory_r32(BANK_INTERPRETER, i->OP));
 			i->IP += 1;
 		}
 		break;
@@ -330,10 +328,10 @@ static i8 interpreter_step(Interpreter *i)
 			u8 cnt;
 
 			i->OP += 4;
-			v = memory_r32(i->Segment + i->OP);
+			v = memory_r32(BANK_INTERPRETER, i->OP);
 
 			i->IP += 1;
-			cnt = memory_r8(i->Segment + i->IP);
+			cnt = memory_r8(BANK_INTERPRETER, i->IP);
 
 			if(v > cnt)
 			{
@@ -341,29 +339,29 @@ static i8 interpreter_step(Interpreter *i)
 			}
 
 			i->IP += 1;
-			i->IP = memory_r16(i->Segment + i->IP + 2 * v);
+			i->IP = memory_r16(BANK_INTERPRETER, i->IP + 2 * v);
 		}
 		break;
 
 	case INSTR_JZ:
 		/* Jump to fixed location if stack top is zero */
 		i->OP += 4;
-		if(memory_r32(i->Segment + i->OP))
+		if(memory_r32(BANK_INTERPRETER, i->OP))
 		{
 			i->IP += 3;
 		}
 		else
 		{
-			i->IP = memory_r16(i->Segment + i->IP + 1);
+			i->IP = memory_r16(BANK_INTERPRETER, i->IP + 1);
 		}
 		break;
 
 	case INSTR_JNZ:
 		/* Jump to fixed location if stack top is not zero */
 		i->OP += 4;
-		if(memory_r32(i->Segment + i->OP))
+		if(memory_r32(BANK_INTERPRETER, i->OP))
 		{
-			i->IP = memory_r16(i->Segment + i->IP + 1);
+			i->IP = memory_r16(BANK_INTERPRETER, i->IP + 1);
 		}
 		else
 		{
@@ -374,7 +372,7 @@ static i8 interpreter_step(Interpreter *i)
 	case INSTR_JMP:
 		/* Unconditional jump to fixed location */
 		i->IP += 1;
-		i->IP = memory_r16(i->Segment + i->IP);
+		i->IP = memory_r16(BANK_INTERPRETER, i->IP);
 		break;
 
 	case INSTR_CALL:
@@ -385,11 +383,11 @@ static i8 interpreter_step(Interpreter *i)
 
 			/* Get function args */
 			i->IP += 1;
-			args = memory_r8(i->Segment + i->IP);
+			args = memory_r8(BANK_INTERPRETER, i->IP);
 
 			/* Get function address */
 			i->IP += 1;
-			func = memory_r16(i->Segment + i->IP);
+			func = memory_r16(BANK_INTERPRETER, i->IP);
 
 			/* Next instruction address */
 			i->IP += 2;
@@ -404,24 +402,24 @@ static i8 interpreter_step(Interpreter *i)
 				i->OP += 4 * args;
 				for(j = 0; j < args; ++j)
 				{
-					arg_buf[j] = memory_r32(i->Segment + i->OP - 4 * j);
+					arg_buf[j] = memory_r32(BANK_INTERPRETER, i->OP - 4 * j);
 				}
 
 				/* Call function id with parameter offset */
 				ret = _builtin_call(-func - 1, arg_buf);
 
 				/* Return Value */
-				memory_w32(i->Segment + i->OP, ret);
+				memory_w32(BANK_INTERPRETER, i->OP, ret);
 				i->OP -= 4;
 			}
 			else
 			{
 				/* Store return address on stack */
-				memory_w32(i->Segment + i->SP, i->IP);
+				memory_w32(BANK_INTERPRETER, i->SP, i->IP);
 				i->SP -= 4;
 
 				/* Store frame pointer of caller on stack */
-				memory_w32(i->Segment + i->SP, i->FP);
+				memory_w32(BANK_INTERPRETER, i->SP, i->FP);
 				i->SP -= 4;
 
 				/* Set frame pointer of callee to top of stack */
@@ -431,7 +429,7 @@ static i8 interpreter_step(Interpreter *i)
 				for(j = 0; j < args; ++j)
 				{
 					i->OP += 4;
-					memory_w32(i->Segment + i->SP - 4 * ((args - 1) - j), memory_r32(i->Segment + i->OP));
+					memory_w32(BANK_INTERPRETER, i->SP - 4 * ((args - 1) - j), memory_r32(BANK_INTERPRETER, i->OP));
 				}
 
 				/* Jump to function */
@@ -443,15 +441,15 @@ static i8 interpreter_step(Interpreter *i)
 	case INSTR_RET:
 		/* Return from function */
 		i->SP = i->FP + 4;
-		i->FP = memory_r32(i->Segment + i->SP);
+		i->FP = memory_r32(BANK_INTERPRETER, i->SP);
 		i->SP += 4;
-		i->IP = memory_r32(i->Segment + i->SP);
+		i->IP = memory_r32(BANK_INTERPRETER, i->SP);
 		break;
 
 	case INSTR_DSP:
 		/* Decrement stack pointer by fixed amount */
 		i->IP += 1;
-		i->SP -= 4 * memory_r8(i->Segment + i->IP);
+		i->SP -= 4 * memory_r8(BANK_INTERPRETER, i->IP);
 		i->IP += 1;
 		break;
 
