@@ -473,6 +473,7 @@ two stacks and the parameter copying when calling a function.
 - function pointers
 - better and more helpful error messages
 - switch-case
+- constants
 
 ### Builtin Functions
 - memory functions (memcpy, memchr, etc.)

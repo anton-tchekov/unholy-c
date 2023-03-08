@@ -16,35 +16,18 @@
 #include "parser.c"
 #include "interpreter.c"
 
-u8 code[1024] =
-{
-	INSTR_PUSHI8,
-	42,
-	INSTR_CALL,
-	6,
-	0,
-	INSTR_HALT,
+#if PLATFORM == PLATFORM_LINUX
 
-	/* square */
-	INSTR_DSP,
-	1,
-	INSTR_PUSHL,
-	0,
-	INSTR_PUSHL,
-	0,
-	INSTR_CALL,
-	0xFD,
-	0xFF,
-	INSTR_RET
-};
 
 int main(int argc, char **argv)
 {
 	i8 ret;
 	FILE *fp;
+	Interpreter i;
 
 	if(argc != 2)
 	{
+		fprintf(stderr, "Usage: ./nanoc [file]\n");
 		return 1;
 	}
 
@@ -67,11 +50,8 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	Interpreter i;
 	interpreter_init(&i);
-
 	_disasm(&i, _parser.Offset);
-
 	while(!interpreter_step(&i))
 	{
 	}
@@ -79,23 +59,37 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+#elif PLATFORM == PLATFORM_AVR
+
+int main(void)
+{
+	i8 ret;
+	Interpreter i;
+
+	tokenizer_init();
+	ret = parser_compile();
+	if(ret)
+	{
+		printf("parse error: %s\n"
+				"row: %d, col: %d\n",
+				error_message(ret),
+				_token.Pos.Row, _token.Pos.Col);
+		return 1;
+	}
+
+	interpreter_init(&i);
+	while(!interpreter_step(&i))
+	{
+	}
+
+	return 0;
+}
+
+#endif
+
+
 
 #ifdef LEGACY
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <math.h>
-#include "types.h"
-#include "readfile.h"
-#include "util.c"
-#include "error.c"
-#include "map.c"
-#include "unholy.h"
-#include "lexer.c"
-#include "parser.c"
-#include "interpreter.c"
 
 #define STRINGS_OFFSET (8 * 1024)
 
@@ -114,7 +108,7 @@ int main(int argc, char **argv)
 	/* check args */
 	if(argc != 2 && argc != 3)
 	{
-		fprintf(stderr, "usage: ./nanoc filename\n");
+
 		return 1;
 	}
 

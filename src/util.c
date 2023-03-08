@@ -11,30 +11,27 @@ static void _write_32(u8 *b, u32 v);
 
 static u16 _read_16(u8 *p)
 {
-	u16 v;
-	v = *p | (*(p + 1) << 8);
-	return v;
+	return ((u16)p[0]) | (((u16)p[1]) << 8);
 }
 
 static void _write_16(u8 *b, u16 v)
 {
-	*b = (u8)(v & 0xFF);
-	*(b + 1) = (u8)((v >> 8) & 0xFF);
+	b[0] = v & 0xFF;
+	b[1] = v >> 8;
 }
 
 static u32 _read_32(u8 *p)
 {
-	u32 v;
-	v = *p | (*(p + 1) << 8) | (*(p + 2) << 16) | (*(p + 3) << 24);
-	return v;
+	return ((u32)p[0]) | (((u32)p[1]) << 8) |
+		(((u32)p[2]) << 16) | (((u32)p[3]) << 24);
 }
 
 static void _write_32(u8 *b, u32 v)
 {
-	*b = (u8)(v & 0xFF);
-	*(b + 1) = (u8)((v >> 8) & 0xFF);
-	*(b + 2) = (u8)((v >> 16) & 0xFF);
-	*(b + 3) = (u8)((v >> 24) & 0xFF);
+	b[0] = v & 0xFF;
+	b[1] = ((v >> 8) & 0xFF);
+	b[2] = ((v >> 16) & 0xFF);
+	b[3] = v >> 24;
 }
 
 static i8 _string_find(const char *str, const char *name)

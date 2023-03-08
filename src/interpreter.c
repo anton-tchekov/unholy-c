@@ -1,13 +1,15 @@
 #define OP_START      0xFFFC
-#define SP_START      0xFA00
+#define CSP_START      0xFA00
 
-typedef struct INTERPRETER
+typedef struct _INTERPRETER
 {
-	u16 SP, /* Stack pointer */
+	u16 CSP, /* Call stack pointer */
 		FP, /* Frame pointer */
 		IP, /* Instruction pointer */
 		OP; /* Operand pointer */
 } Interpreter;
+
+#ifdef DEBUG_INTERPRETER
 
 #define COLOR_RED    "\033[1;31m"
 #define COLOR_PURPLE "\033[1;35m"
@@ -114,8 +116,8 @@ static u8 _debug_instruction(Interpreter *i)
 		size = 1;
 		break;
 
-	case INSTR_DSP:
-		printf("DSP %d\n", memory_r8(BANK_INTERPRETER, i->IP + 1));
+	case INSTR_DCSP:
+		printf("DCSP %d\n", memory_r8(BANK_INTERPRETER, i->IP + 1));
 		size = 2;
 		break;
 
@@ -141,21 +143,19 @@ static void _disasm(Interpreter *i, u16 len)
 	i->IP = prev;
 }
 
-#ifdef DEBUG_INTERPRETER
-
 static void _debug_stack(Interpreter *i)
 {
 	u32 addr, start, end, slot;
 
 	start = i->FP + 32;
-	end = i->SP - 32;
+	end = i->CSP - 32;
 
-	if(start > SP_START)
+	if(start > CSP_START)
 	{
-		start = SP_START;
+		start = CSP_START;
 	}
 
-	slot = (SP_START - start) / 4;
+	slot = (CSP_START - start) / 4;
 
 	printf("+------+-------+------+------------+----------+\n");
 	for(addr = start; addr >= end; addr -= 4, ++slot)
@@ -164,7 +164,7 @@ static void _debug_stack(Interpreter *i)
 
 		printf("| %4d | %5d | %04X | %10d | %08X |", slot, addr, addr, value, value);
 
-		if(i->FP == addr || i->SP == addr)
+		if(i->FP == addr || i->CSP == addr)
 		{
 			printf(COLOR_PURPLE);
 		}
@@ -174,9 +174,9 @@ static void _debug_stack(Interpreter *i)
 			printf(" <-- FP ");
 		}
 
-		if(i->SP == addr)
+		if(i->CSP == addr)
 		{
-			printf(" <-- SP ");
+			printf(" <-- CSP ");
 		}
 
 		printf(COLOR_RESET "\n");
@@ -228,8 +228,8 @@ static void interpreter_init(Interpreter *i)
 {
 	/* Empty descending stack */
 	i->OP = OP_START;
-	i->SP = SP_START;
-	i->FP = i->SP;
+	i->CSP = CSP_START;
+	i->FP = i->CSP;
 	i->IP = 0;
 
 #ifdef DEBUG_INTERPRETER
@@ -304,7 +304,7 @@ static i8 interpreter_step(Interpreter *i)
 			u16 offset;
 			i->IP += 1;
 			offset = 4 * memory_r8(BANK_INTERPRETER, i->IP);
-			memory_w32(BANK_INTERPRETER, i->OP, memory_r32(BANK_INTERPRETER, SP_START - offset));
+			memory_w32(BANK_INTERPRETER, i->OP, memory_r32(BANK_INTERPRETER, CSP_START - offset));
 			i->OP -= 4;
 			i->IP += 1;
 		}
@@ -317,7 +317,7 @@ static i8 interpreter_step(Interpreter *i)
 			i->IP += 1;
 			offset = 4 * memory_r8(BANK_INTERPRETER, i->IP);
 			i->OP += 4;
-			memory_w32(BANK_INTERPRETER, SP_START - offset, memory_r32(BANK_INTERPRETER, i->OP));
+			memory_w32(BANK_INTERPRETER, CSP_START - offset, memory_r32(BANK_INTERPRETER, i->OP));
 			i->IP += 1;
 		}
 		break;
@@ -415,21 +415,21 @@ static i8 interpreter_step(Interpreter *i)
 			else
 			{
 				/* Store return address on stack */
-				memory_w32(BANK_INTERPRETER, i->SP, i->IP);
-				i->SP -= 4;
+				memory_w32(BANK_INTERPRETER, i->CSP, i->IP);
+				i->CSP -= 4;
 
 				/* Store frame pointer of caller on stack */
-				memory_w32(BANK_INTERPRETER, i->SP, i->FP);
-				i->SP -= 4;
+				memory_w32(BANK_INTERPRETER, i->CSP, i->FP);
+				i->CSP -= 4;
 
 				/* Set frame pointer of callee to top of stack */
-				i->FP = i->SP;
+				i->FP = i->CSP;
 
 				/* Copy Paramters */
 				for(j = 0; j < args; ++j)
 				{
 					i->OP += 4;
-					memory_w32(BANK_INTERPRETER, i->SP - 4 * ((args - 1) - j), memory_r32(BANK_INTERPRETER, i->OP));
+					memory_w32(BANK_INTERPRETER, i->CSP - 4 * ((args - 1) - j), memory_r32(BANK_INTERPRETER, i->OP));
 				}
 
 				/* Jump to function */
@@ -440,16 +440,16 @@ static i8 interpreter_step(Interpreter *i)
 
 	case INSTR_RET:
 		/* Return from function */
-		i->SP = i->FP + 4;
-		i->FP = memory_r32(BANK_INTERPRETER, i->SP);
-		i->SP += 4;
-		i->IP = memory_r32(BANK_INTERPRETER, i->SP);
+		i->CSP = i->FP + 4;
+		i->FP = memory_r32(BANK_INTERPRETER, i->CSP);
+		i->CSP += 4;
+		i->IP = memory_r32(BANK_INTERPRETER, i->CSP);
 		break;
 
 	case INSTR_DSP:
 		/* Decrement stack pointer by fixed amount */
 		i->IP += 1;
-		i->SP -= 4 * memory_r8(BANK_INTERPRETER, i->IP);
+		i->CSP -= 4 * memory_r8(BANK_INTERPRETER, i->IP);
 		i->IP += 1;
 		break;
 

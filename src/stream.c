@@ -1,0 +1,10 @@
+stream_open()
+stream_close()
+stream_write()
+stream_read()
+
+file_copy()
+file_move()
+file_delete()
+file_size()
+file_list()

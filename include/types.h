@@ -35,7 +35,11 @@ typedef uint8_t u8;
 
 typedef float f32;
 
-#if PLATFORM == PLATFORM_LINUX
+#if PLATFORM == PLATFORM_AVR
+
+#include <avr/pgmspace.h>
+
+#elif PLATFORM == PLATFORM_LINUX
 
 #define PROGMEM
 

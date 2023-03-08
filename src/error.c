@@ -86,7 +86,7 @@ enum NANOC_ERROR
 static const char *error_message(i8 code)
 {
 	static const char STRING_INV_ERROR_CODE[] PROGMEM = "ERROR_INV_ERROR_CODE";
-	static const char *_err_msgs[] PROGMEM =
+	static const char *const _err_msgs[] PROGMEM =
 	{
 		FOREACH_ERROR(GENERATE_STRING_ARRAY)
 	};

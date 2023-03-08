@@ -376,6 +376,7 @@ static u32 _rs8(u32 *p)
 	return (i32)((i8)memory_r8(BANK_INTERPRETER, p[0]));
 }
 
+/* bulk memory */
 static u32 _mcpy(u32 *p)
 {
 	return 0;
@@ -416,7 +417,7 @@ static u32 _rand(u32 *p)
 /* IO */
 static u32 _print_string(u32 *p)
 {
-	printf("%s\n", _output + p[0]);
+	/*rintf("%s\n", _output + p[0]);*/
 	return 0;
 }
 
@@ -586,7 +587,9 @@ static const i8 _num_parameters[] PROGMEM =
 	0, /* clear */
 };
 
-static u32 (*_builtins[])(u32 *) PROGMEM =
+typedef u32 (*const builtin_ptr)(u32 *);
+
+static builtin_ptr _builtins[] PROGMEM =
 {
 	/* INT */
 	_add,
@@ -778,6 +781,7 @@ static const char _identifiers[] PROGMEM =
 	"ru8\0"
 	"rs16\0"
 	"rs8\0"
+
 	"mcpy\0"
 	"mcmp\0"
 	"mchr\0"
@@ -834,5 +838,5 @@ static i8 _builtin_num_parameters(u8 id)
 
 static u32 _builtin_call(u8 id, u32 *args)
 {
-	return (pgm_read_ptr(_builtins + id))(args);
+	return ((builtin_ptr)pgm_read_ptr(_builtins + id))(args);
 }

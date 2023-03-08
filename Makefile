@@ -24,6 +24,9 @@ $(OBJ)/%.o: $(SRC)/%.c $(_DEPS)
 all: $(_OBJS)
 	$(CC) -o $(TARGET) $(_OBJS) $(LDFLAGS)
 
+avr:
+	make -f avr.mk
+
 .PHONY: clean
 clean:
 	rm -f $(OBJ)/*.o

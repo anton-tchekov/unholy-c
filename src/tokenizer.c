@@ -475,7 +475,10 @@ static i8 tokenizer_next(void)
 		_tokenizer_advance();
 	}
 
+#ifdef DEBUG
 	_tokenizer_debug();
+#endif
+
 	return 0;
 }
 
