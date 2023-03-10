@@ -9,8 +9,8 @@
 #include "util.c"
 #include "instr.c"
 #include "error.c"
-#include "stream.c"
 #include "memory.c"
+#include "stream.c"
 #include "builtin.c"
 #include "token.c"
 #include "tokenizer.c"
@@ -45,6 +45,8 @@ int main(void)
 	filename = "life.uhc";
 #endif
 
+	printf("here!\n");
+
 	if(!(file = file_open(filename, "r")))
 	{
 		stream_str_P(0, _fail_open_str);
@@ -53,8 +55,12 @@ int main(void)
 		return 1;
 	}
 
+	printf("here!\n");
+
 	file_read(file, BANK_INPUT, 0, 0x8000);
 	file_close(file);
+
+	printf("here!\n");
 
 	tokenizer_init();
 	ret = parser_compile();
