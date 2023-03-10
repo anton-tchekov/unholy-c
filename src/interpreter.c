@@ -11,10 +11,6 @@ typedef struct _INTERPRETER
 
 #ifdef DEBUG_INTERPRETER
 
-#define COLOR_RED    "\033[1;31m"
-#define COLOR_PURPLE "\033[1;35m"
-#define COLOR_RESET  "\033[0m"
-
 static u8 _debug_instruction(Interpreter *i)
 {
 	u8 size = 0;
@@ -116,8 +112,8 @@ static u8 _debug_instruction(Interpreter *i)
 		size = 1;
 		break;
 
-	case INSTR_DCSP:
-		printf("DCSP %d\n", memory_r8(BANK_INTERPRETER, i->IP + 1));
+	case INSTR_DSP:
+		printf("DSP %d\n", memory_r8(BANK_INTERPRETER, i->IP + 1));
 		size = 2;
 		break;
 
@@ -131,14 +127,18 @@ static u8 _debug_instruction(Interpreter *i)
 	return size;
 }
 
-static void _disasm(Interpreter *i, u16 len)
+static void disasm(Interpreter *i, u16 len)
 {
 	u16 prev;
+
+	printf("DISASM!\n");
+
 	prev = i->IP;
 	while(i->IP < len)
 	{
 		i->IP += _debug_instruction(i);
 	}
+	printf("END!\n");
 
 	i->IP = prev;
 }
@@ -160,7 +160,7 @@ static void _debug_stack(Interpreter *i)
 	printf("+------+-------+------+------------+----------+\n");
 	for(addr = start; addr >= end; addr -= 4, ++slot)
 	{
-		u32 value = memory_r32(addr);
+		u32 value = memory_r32(BANK_INTERPRETER, addr);
 
 		printf("| %4d | %5d | %04X | %10d | %08X |", slot, addr, addr, value, value);
 
@@ -202,7 +202,7 @@ static void _debug_op_stack(Interpreter *i)
 	printf("+------+-------+------+------------+----------+\n");
 	for(addr = start; addr >= end; addr -= 4, ++slot)
 	{
-		u32 value = memory_r32(addr);
+		u32 value = memory_r32(BANK_INTERPRETER, addr);
 
 		printf("| %4d | %5d | %04X | %10d | %08X |", slot, addr, addr, value, value);
 

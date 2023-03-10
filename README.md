@@ -469,18 +469,23 @@ two stacks and the parameter copying when calling a function.
 ## TODO
 
 ### Features
-- for loops
-- function pointers
+
+**PRIORITY:**
+
 - better and more helpful error messages
+
+**LATER:**
+
+- function pointers
 - switch-case
 - constants
 
 ### Builtin Functions
+
+**PRIORITY:**
+
 - memory functions (memcpy, memchr, etc.)
 - string functions (strcpy, strchr, etc.)
-- data structure / algorithm standard library
-	- prerequisite: function pointers
-	- sorting, hashing, etc.
 
 - file i/o
 	- prerequisite: SD-Card abstraction
@@ -488,18 +493,33 @@ two stacks and the parameter copying when calling a function.
 - terminal i/o (printf, etc.)
 	- prerequisite: UART abstraction
 
+**LATER:**
+
+- data structure / algorithm standard library
+	- prerequisite: function pointers
+	- sorting, hashing, etc.
+
 ### Documentation / Utility
+
+**PRIORITY:**
+
+- proofread, update docs to reflect changes
+
+**LATER:**
+
 - more code examples
-- proofread docs
 
 ### Platform
+
+**PRIORITY:**
+
+- SD-Card
 - Test on microcontroller
-- UART []
-- SD-Card []
-- External RAM [DONE]
+
+**LATER:**
+
 - Test and compare execution speed
 
 ### Known Bugs
-- for loop step not working correctly
 
 ### Untested

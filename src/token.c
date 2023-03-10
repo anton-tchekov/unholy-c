@@ -11,9 +11,9 @@ enum TOKEN_TYPE
 	TT_DO,
 	TT_WHILE,
 	TT_FOR,
-	TT_FROM,
 	TT_TO,
-	TT_STEP,
+	TT_INC,
+	TT_DEC,
 	TT_VAR,
 	TT_FN,
 	TT_BREAK,
@@ -33,9 +33,9 @@ static const char _keywords[] PROGMEM =
 	"do\0"
 	"while\0"
 	"for\0"
-	"from\0"
 	"to\0"
-	"step\0"
+	"inc\0"
+	"dec\0"
 	"var\0"
 	"fn\0"
 	"break\0"
@@ -57,39 +57,3 @@ static i8 _keyword_find(const char *name)
 
 	return TT_KEYWORD + ret;
 }
-
-#ifdef DEBUG
-
-static const char *_token_type_string(i8 code)
-{
-	switch(code)
-	{
-		case TT_NULL:           return "TT_NULL";
-		case TT_NUMBER:         return "TT_NUMBER";
-		case TT_FN_IDENTIFIER:  return "TT_FN_IDENTIFIER";
-		case TT_VAR_IDENTIFIER: return "TT_VAR_IDENTIFIER";
-		case TT_IF:             return "TT_IF";
-		case TT_ELIF:           return "TT_ELIF";
-		case TT_ELSE:           return "TT_ELSE";
-		case TT_DO:             return "TT_DO";
-		case TT_WHILE:          return "TT_WHILE";
-		case TT_FOR:            return "TT_FOR";
-		case TT_FROM:           return "TT_FROM";
-		case TT_TO:             return "TT_TO";
-		case TT_STEP:           return "TT_STEP";
-		case TT_VAR:            return "TT_VAR";
-		case TT_FN:             return "TT_FN";
-		case TT_BREAK:          return "TT_BREAK";
-		case TT_CONTINUE:       return "TT_CONTINUE";
-		case TT_RETURN:         return "TT_RETURN";
-		case TT_LOOP:           return "TT_LOOP";
-		case TT_TRUE:           return "TT_TRUE";
-		case TT_FALSE:          return "TT_FALSE";
-		case TT_CONST:          return "TT_CONST";
-		case TT_SWITCH:         return "TT_SWITCH";
-	}
-
-	return "TT_UNDEFINED";
-}
-
-#endif

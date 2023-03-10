@@ -37,6 +37,8 @@ typedef float f32;
 
 #if PLATFORM == PLATFORM_AVR
 
+#include <avr/io.h>
+#include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 
 #elif PLATFORM == PLATFORM_LINUX

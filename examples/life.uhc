@@ -49,6 +49,11 @@ fn board_update(board1, board2)
 	}
 }
 
+fn clear()
+{
+	print_str("\x1B[H\x1B[J");
+}
+
 fn board_draw(board)
 {
 	var x, y;

@@ -412,7 +412,39 @@ static i8 _tokenizer_string_literal(void)
 	return 0;
 }
 
-#ifdef DEBUG
+#ifdef DEBUG_TOKENIZER
+
+static const char *_token_type_string(i8 code)
+{
+	switch(code)
+	{
+		case TT_NULL:           return "TT_NULL";
+		case TT_NUMBER:         return "TT_NUMBER";
+		case TT_FN_IDENTIFIER:  return "TT_FN_IDENTIFIER";
+		case TT_VAR_IDENTIFIER: return "TT_VAR_IDENTIFIER";
+		case TT_IF:             return "TT_IF";
+		case TT_ELIF:           return "TT_ELIF";
+		case TT_ELSE:           return "TT_ELSE";
+		case TT_DO:             return "TT_DO";
+		case TT_WHILE:          return "TT_WHILE";
+		case TT_FOR:            return "TT_FOR";
+		case TT_TO:             return "TT_TO";
+		case TT_INC:            return "TT_INC";
+		case TT_DEC:            return "TT_DEC";
+		case TT_VAR:            return "TT_VAR";
+		case TT_FN:             return "TT_FN";
+		case TT_BREAK:          return "TT_BREAK";
+		case TT_CONTINUE:       return "TT_CONTINUE";
+		case TT_RETURN:         return "TT_RETURN";
+		case TT_LOOP:           return "TT_LOOP";
+		case TT_TRUE:           return "TT_TRUE";
+		case TT_FALSE:          return "TT_FALSE";
+		case TT_CONST:          return "TT_CONST";
+		case TT_SWITCH:         return "TT_SWITCH";
+	}
+
+	return "TT_UNDEFINED";
+}
 
 static void _tokenizer_debug(void)
 {
@@ -475,7 +507,7 @@ static i8 tokenizer_next(void)
 		_tokenizer_advance();
 	}
 
-#ifdef DEBUG
+#ifdef DEBUG_TOKENIZER
 	_tokenizer_debug();
 #endif
 

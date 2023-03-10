@@ -56,7 +56,7 @@ static void memory_mcpy(u8 bank, u16 dest, u16 src, u16 count)
 
 static i8 memory_mcmp(u8 bank, u16 a, u16 b, u16 count)
 {
-	return memcmp(_calculate_ptr(bank, a),
+	return memmove(_calculate_ptr(bank, a),
 		_calculate_ptr(bank, b), count);
 }
 
@@ -211,14 +211,38 @@ static i8 memory_mcmp(u8 bank, u16 a, u16 b, u16 count)
 	return 0;
 }
 
-static void memory_mchr(u8 bank, u16 addr, u8 value, u16 count)
+static u16 memory_mchr(u8 bank, u16 addr, u8 value, u16 count)
 {
+	u16 bytes;
+	while(bytes < count)
+	{
+		_xmem_read(bank, addr, )
+		for(i = 0; i < ; ++i)
+		{
+			if(chunk[i] == value)
+			{
+				return addr + i;
+			}
+		}
 
+		addr += bytes;
+	}
+
+	return ;
 }
 
 static void memory_mset(u8 bank, u16 addr, u8 value, u16 count)
 {
+	u16 i;
+	_xmem_select(bank);
+	_spi_xchg(SRAM_COMMAND_WRITE);
+	_xmem_addr(bank, addr);
+	for(i = 0; i < count; ++i)
+	{
+		_spi_xchg(value);
+	}
 
+	_xmem_deselect(bank);
 }
 
 #endif
