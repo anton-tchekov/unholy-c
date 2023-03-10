@@ -115,81 +115,167 @@ static void stream_init(void)
 	uart_init();
 }
 
-static u8 stream_open(const char *filename, const char *mode)
+static u8 file_open(const char *filename, const char *mode)
 {
-
+	/* TODO */
+	return 0;
 }
 
-static void stream_close(u8 stream)
-{
-
-}
-
-static void stream_write(u8 stream, const void *buffer, u16 size)
-{
-
-}
-
-static void stream_read(u8 stream, const void *buffer, u16 size)
-{
-
-}
-
-/* PRINT */
-static void stream_str(u32 *p)
-{
-}
-
-static void stream_str_ext()
+static void file_close(u8 stream)
 {
 	/* TODO */
 }
 
-static void stream_dec(u8 stream, u32 value)
-{
-}
-
-static void stream_dec_ext(u8 stream, u32 value)
+static void file_write(u8 stream, const void *buffer, u16 size)
 {
 	/* TODO */
 }
 
-static void stream_hex(u8 stream, u32 value)
-{
-}
-
-static void stream_hex_ext(u8 stream, u32 value)
+static void file_read(u8 stream, const void *buffer, u16 size)
 {
 	/* TODO */
 }
 
-static void stream_float(u8 stream, f32 value)
-{
-
-}
-
-static void stream_float_ext(u8 stream, f32 value)
+static void file_seek(u8 file, u32 pos)
 {
 	/* TODO */
+}
+
+static void file_copy(const char *dst, const char *src)
+{
+	/* TODO */
+}
+
+static void file_move(const char *dst, const char *src)
+{
+	/* TODO */
+}
+
+static void file_delete(const char *filename)
+{
+	/* TODO */
+}
+
+static u32 file_size(const char *filename)
+{
+	/* TODO */
+	return 0;
 }
 
 static void stream_chr(u8 stream, char value)
 {
+	/* TODO */
 }
 
 #elif PLATFORM == PLATFORM_LINUX
 
 static void stream_init(void)
 {
+	/* Do Nothing */
+}
+
+static u8 file_open(const char *filename, const char *mode)
+{
+	/* TODO */
+	return 0;
+}
+
+static void file_close(u8 stream)
+{
+	/* TODO */
+}
+
+static void file_write(u8 stream, u8 bank, u16 addr, u16 size)
+{
+	/* TODO */
+}
+
+static void file_read(u8 stream, u8 bank, u16 addr, u16 size)
+{
+	/* TODO */
+}
+
+static void file_seek(u8 file, u32 pos)
+{
+	/* TODO */
+}
+
+static void file_copy(const char *dst, const char *src)
+{
+	/* TODO */
+}
+
+static void file_move(const char *dst, const char *src)
+{
+	/* TODO */
+}
+
+static void file_delete(const char *filename)
+{
+	/* TODO */
+}
+
+static u32 file_size(const char *filename)
+{
+	/* TODO */
+	return 0;
+}
+
+static void stream_chr(u8 stream, char value)
+{
+	/* TODO */
 }
 
 #endif
 
-/*
-file_seek()
-file_copy()
-file_move()
-file_delete()
-file_size()
-file_list()
-*/
+/* PRINT */
+static void stream_str(u8 stream, const char *str)
+{
+	/* TODO */
+}
+
+static void stream_str_P(u8 stream, const char *str)
+{
+	/* TODO */
+}
+
+static void stream_str_X(u8 stream, u8 bank, u16 addr)
+{
+	/* TODO */
+}
+
+static void stream_str_ext_X(u8 stream, u8 bank, u16 addr, u16 len)
+{
+	/* TODO */
+}
+
+static void stream_dec(u8 stream, u32 value)
+{
+	/* TODO */
+}
+
+static void stream_dec_ext(u8 stream, u32 value, u8 width)
+{
+	/* TODO */
+}
+
+static void stream_hex(u8 stream, u32 value)
+{
+	/* TODO */
+}
+
+static void stream_hex_ext(u8 stream, u32 value, u8 width)
+{
+	/* TODO */
+}
+
+static void stream_float(u8 stream, f32 value)
+{
+	/* TODO */
+}
+
+static void stream_float_ext(u8 stream, f32 value, u8 width, u8 decimal)
+{
+	/* TODO */
+}
+

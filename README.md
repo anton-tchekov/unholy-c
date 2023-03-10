@@ -1,5 +1,8 @@
 # Usage
 
+WARNING: The current version is very much a work in progress
+and probably won't even compile.
+
 **Clone repo:**
 
     git clone https://github.com/anton-tchekov/unholy-c.git
@@ -240,12 +243,13 @@ There are four types of loops:
 - **counting (not yet implemented)**
 
 ```
-for c from 'A' to 'Z' {
-    printf("%c\n", c);
+for c = 'A' to 'Z' {
+    print_chr(0, c);
 }
 
-for i from 0 to 100 step 5 {
-    printf("%d\n", i);
+for i = 0 to 100 inc 5 {
+    print_dec(0, i);
+    print_chr(0, '\n');
 }
 ```
 
@@ -256,7 +260,8 @@ for i from 0 to 100 step 5 {
 ```
 i = 1;
 while le(i, 10) {
-    printf("%d\n", i);
+    print_dec(0, i);
+    print_chr(0, '\n');
     i = add(i, 1);
 }
 ```
@@ -284,13 +289,15 @@ loop {
 **Example:**
 
     if lt(number, 10) {
-        printf("Your number is less than 10\n");
+        print_str("Your number is less than 10\n");
     }
     elif eq(number, 42) {
-        printf("Good choice!\n");
+        print_str("Good choice!\n");
     }
     else {
-        printf("Your number %d\n", number);
+        print_str("Your number ");
+        print_dec(number);
+		print_chr('\n');
     }
 
 ### switch Branch (not yet implemented)
@@ -322,16 +329,16 @@ The arrow operator after a block denotes fall-through behaviour.
 
     switch n [
         {
-            printf("n is zero\n");
+            print_str("n is zero\n");
         },
         {
-            printf("n is one\n");
+            print_str("n is one\n");
         } ->
         {
-            printf("n is one or two\n");
+            print_str("n is one or two\n");
         },
         {
-            printf("n is three\n");
+            print_str("n is three\n");
         }
     ]
 
@@ -484,14 +491,9 @@ two stacks and the parameter copying when calling a function.
 
 **PRIORITY:**
 
+- file and terminal i/o
 - memory functions (memcpy, memchr, etc.)
 - string functions (strcpy, strchr, etc.)
-
-- file i/o
-	- prerequisite: SD-Card abstraction
-
-- terminal i/o (printf, etc.)
-	- prerequisite: UART abstraction
 
 **LATER:**
 
@@ -514,7 +516,6 @@ two stacks and the parameter copying when calling a function.
 **PRIORITY:**
 
 - SD-Card
-- Test on microcontroller
 
 **LATER:**
 
@@ -523,3 +524,4 @@ two stacks and the parameter copying when calling a function.
 ### Known Bugs
 
 ### Untested
+- Test on microcontroller

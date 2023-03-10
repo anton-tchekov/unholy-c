@@ -279,8 +279,7 @@ static i8 _parser_check_impl(void)
 static i8 _parser_fn(void)
 {
 #ifdef DEBUG_PARSER
-	printf(
-		"---------------------------------------------------------------------\n"
+	printf("---------------------------------------------------------------------\n"
 		"\t\t\t\t\t\tPARSER FN\n");
 #endif
 

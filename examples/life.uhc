@@ -64,7 +64,7 @@ fn board_draw(board)
 			_draw_char(board_get(board, x, y));
 		}
 
-		print_char('\n');
+		print_chr('\n');
 	}
 }
 
@@ -102,7 +102,7 @@ fn _draw_char(v)
 		c = ' ';
 	}
 
-	print_char(c);
+	print_chr(c);
 }
 
 fn _check_bounds(x, y)

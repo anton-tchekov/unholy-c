@@ -18,6 +18,7 @@
 #include "interpreter.c"
 
 static const char *_usage_str PROGMEM = "Usage: ./nanoc [file]\n";
+static const char *_fail_open_str PROGMEM = "Failed to open file ";
 
 #if PLATFORM == PLATFORM_LINUX
 int main(int argc, char **argv)
@@ -28,30 +29,39 @@ int main(void)
 	u8 file;
 	i8 ret;
 	Interpreter i;
+	const char *filename;
 
 #if PLATFORM == PLATFORM_LINUX
 	if(argc != 2)
 	{
-		stream_str(0, _usage_str);
+		stream_str_P(0, _usage_str);
 		return 1;
 	}
 
-	if(!(file = stream_open(argv[1], "r")))
-	{
-		fprintf(stderr, "Failed to open file \"%s\"\n", argv[1]);
-		return 1;
-	}
+	filename = argv[1];
+#elif PLATFORM == PLATFORM_AVR
+	/* Load specific file from SD-Card for now */
+	/* TODO: Shell, Editor */
+	filename = "life.uhc";
 #endif
 
-	stream_read(file, BANK_INPUT, 0, 0x10000);
-	stream_close(file);
+	if(!(file = file_open(filename, "r")))
+	{
+		stream_str_P(0, _fail_open_str);
+		stream_str(0, filename);
+		stream_chr(0, '\n');
+		return 1;
+	}
+
+	file_read(file, BANK_INPUT, 0, 0x8000);
+	file_close(file);
 
 	tokenizer_init();
 	ret = parser_compile();
 	if(ret)
 	{
 		char c;
-		u16 i, s, len;
+		u16 i, s;
 		stream_dec(0, _token.Pos.Row);
 		stream_chr(0, ':');
 		stream_dec(0, _token.Pos.Col);

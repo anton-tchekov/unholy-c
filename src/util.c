@@ -1,5 +1,3 @@
-#include "types.h"
-
 #define ARRLEN(a) (sizeof(a) / sizeof(*a))
 #define ABS(n) (((n) < 0) ? -(n) : (n))
 

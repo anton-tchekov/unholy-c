@@ -1,5 +1,3 @@
-#include "types.h"
-
 #if PLATFORM == PLATFORM_LINUX
 
 /* 384 KiB, split in 6 banks of 64 KiB */
@@ -50,17 +48,17 @@ static void memory_w32(u8 bank, u16 addr, u32 val)
 /* BULK */
 static void memory_mcpy(u8 bank, u16 dest, u16 src, u16 count)
 {
-	memcpy(_calculate_ptr(bank, dest),
+	memmove(_calculate_ptr(bank, dest),
 		_calculate_ptr(bank, src), count);
 }
 
-static i8 memory_mcmp(u8 bank, u16 a, u16 b, u16 count)
+static u32 memory_mcmp(u8 bank, u16 a, u16 b, u16 count)
 {
-	return memmove(_calculate_ptr(bank, a),
+	return memcmp(_calculate_ptr(bank, a),
 		_calculate_ptr(bank, b), count);
 }
 
-static u16 memory_mchr(u8 bank, u16 addr, u8 value, u16 count)
+static u32 memory_mchr(u8 bank, u16 addr, u8 value, u16 count)
 {
 	return (u8 *)memchr(_calculate_ptr(bank, addr), value, count) - _bank_ptr(bank);
 }
@@ -196,9 +194,9 @@ static void memory_w32(u8 bank, u16 addr, u32 val)
 
 static void memory_mcpy(u8 bank, u16 dest, u16 src, u16 count)
 {
-/*	TODO: Determine overlap direction!
+	/* TODO: Implement memmove, Determine overlap direction! */
 
-	u8 chunk[CHUNK_SIZE];
+	/*u8 chunk[CHUNK_SIZE];
 	while()
 	{
 		_xmem_read()
@@ -206,14 +204,17 @@ static void memory_mcpy(u8 bank, u16 dest, u16 src, u16 count)
 	}*/
 }
 
-static i8 memory_mcmp(u8 bank, u16 a, u16 b, u16 count)
+static u32 memory_mcmp(u8 bank, u16 a, u16 b, u16 count)
 {
+	/* TODO: Implement memcmp */
 	return 0;
 }
 
-static u16 memory_mchr(u8 bank, u16 addr, u8 value, u16 count)
+static u32 memory_mchr(u8 bank, u16 addr, u8 value, u16 count)
 {
-	u16 bytes;
+	/* TODO: Implement memchr */
+
+	/*u16 bytes;
 	while(bytes < count)
 	{
 		_xmem_read(bank, addr, )
@@ -226,9 +227,8 @@ static u16 memory_mchr(u8 bank, u16 addr, u8 value, u16 count)
 		}
 
 		addr += bytes;
-	}
-
-	return ;
+	}*/
+	return 0;
 }
 
 static void memory_mset(u8 bank, u16 addr, u8 value, u16 count)

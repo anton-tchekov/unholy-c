@@ -379,26 +379,24 @@ static u32 _rs8(u32 *p)
 /* bulk memory */
 static u32 _mcpy(u32 *p)
 {
+	memory_mcpy(BANK_INTERPRETER, p[0], p[1], p[2]);
 	return 0;
-	(void)p;
 }
 
 static u32 _mcmp(u32 *p)
 {
-	return 0;
-	(void)p;
+	return memory_mcmp(BANK_INTERPRETER, p[0], p[1], p[2]);
 }
 
 static u32 _mchr(u32 *p)
 {
-	return 0;
-	(void)p;
+	return memory_mchr(BANK_INTERPRETER, p[0], p[1], p[2]);
 }
 
 static u32 _mset(u32 *p)
 {
+	memory_mset(BANK_INTERPRETER, p[0], p[1], p[2]);
 	return 0;
-	(void)p;
 }
 
 /* RANDOM */
@@ -417,59 +415,55 @@ static u32 _rand(u32 *p)
 /* IO */
 static u32 _print_str(u32 *p)
 {
-	/*printf("%s\n", _output + p[0]);*/
+	stream_str_X(p[0], BANK_INTERPRETER, p[1]);
 	return 0;
 }
 
 static u32 _print_str_ext(u32 *p)
 {
-	/*printf("%s\n", _output + p[0]);*/
+	stream_str_ext_X(p[0], BANK_INTERPRETER, p[1], p[2]);
 	return 0;
-	(void)p;
 }
 
 static u32 _print_dec(u32 *p)
 {
-	printf("%d", p[0]);
+	stream_dec(p[0], p[1]);
 	return 0;
 }
 
 static u32 _print_dec_ext(u32 *p)
 {
-	/*printf("%d\n", p[0]);*/
+	stream_dec_ext(p[0], p[1], p[2]);
 	return 0;
-	(void)p;
 }
 
 static u32 _print_hex(u32 *p)
 {
-	printf("%X\n", p[0]);
+	stream_hex(p[0], p[1]);
 	return 0;
 }
 
 static u32 _print_hex_ext(u32 *p)
 {
-	/*printf("%X\n", p[0]);*/
+	stream_hex_ext(p[0], p[1], p[2]);
 	return 0;
-	(void)p;
 }
 
 static u32 _print_float(u32 *p)
 {
-	printf("%f\n", ibtf(p[0]));
+	stream_float(p[0], ibtf(p[0]));
 	return 0;
 }
 
 static u32 _print_float_ext(u32 *p)
 {
-	/*printf("%5.6f\n", p[0]);*/
+	stream_float_ext(p[0], ibtf(p[1]), p[2], p[3]);
 	return 0;
-	(void)p;
 }
 
-static u32 _print_char(u32 *p)
+static u32 _print_chr(u32 *p)
 {
-	putc(p[0], stdout);
+	stream_chr(p[0], p[1]);
 	return 0;
 }
 
@@ -684,7 +678,7 @@ static builtin_ptr _builtins[] PROGMEM =
 	_print_hex_ext,
 	_print_float,
 	_print_float_ext,
-	_print_char
+	_print_chr
 };
 
 static const char _identifiers[] PROGMEM =
