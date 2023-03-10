@@ -4,8 +4,9 @@
 
 #if PLATFORM == PLATFORM_AVR
 
-#define UART_BUFFER_SIZE  32
-#define _BAUD               (((F_CPU / (UART_BAUD * 16UL))) - 1)
+#define UART_BAUD        9600
+#define UART_BUFFER_SIZE   32
+#define _BAUD                (((F_CPU / (UART_BAUD * 16UL))) - 1)
 
 static volatile u8 _tb_available, _rb_available;
 
@@ -37,7 +38,7 @@ static void uart_tx(char c)
 	}
 	else
 	{
-		while(_tb_available >= UART_TRANSMIT_BUFFER_SIZE - 1) ;
+		while(_tb_available >= UART_BUFFER_SIZE - 1) ;
 
 		++_tb_available;
 		*_tb_write++ = c;
@@ -66,7 +67,7 @@ static i16 uart_rx(void)
 
 ISR(USART_RX_vect)
 {
-	if(_rb_available < UART_RECEIVE_BUFFER_SIZE)
+	if(_rb_available < UART_BUFFER_SIZE)
 	{
 		++_rb_available;
 		*_rb_write++ = UDR0;
@@ -95,6 +96,18 @@ static void stream_init(void)
 	uart_init();
 }
 
+static void stream_char(u8 stream, char value)
+{
+	if(stream == 0)
+	{
+		uart_tx(value);
+	}
+	else
+	{
+		/* TODO */
+	}
+}
+
 static u8 file_open(const char *filename, const char *mode)
 {
 	/* TODO */
@@ -106,12 +119,12 @@ static void file_close(u8 stream)
 	/* TODO */
 }
 
-static void file_write(u8 stream, const void *buffer, u16 size)
+static void file_write(u8 file, u8 bank, u16 addr, u16 size)
 {
 	/* TODO */
 }
 
-static void file_read(u8 stream, const void *buffer, u16 size)
+static void file_read(u8 file, u8 bank, u16 addr, u16 size)
 {
 	/* TODO */
 }
@@ -119,6 +132,12 @@ static void file_read(u8 stream, const void *buffer, u16 size)
 static void file_seek(u8 file, u32 pos)
 {
 	/* TODO */
+}
+
+static u32 file_tell(u8 file)
+{
+	/* TODO */
+	return 0;
 }
 
 static void file_copy(const char *dst, const char *src)
@@ -136,24 +155,6 @@ static void file_delete(const char *filename)
 	/* TODO */
 }
 
-static u32 file_size(const char *filename)
-{
-	/* TODO */
-	return 0;
-}
-
-static void stream_chr(u8 stream, char value)
-{
-	if(stream == 0)
-	{
-		uart_tx(value);
-	}
-	else
-	{
-		/* TODO */
-	}
-}
-
 #elif PLATFORM == PLATFORM_LINUX
 
 static FILE *_files[256];
@@ -163,10 +164,15 @@ static void stream_init(void)
 	/* Do Nothing */
 }
 
+static void stream_char(u8 stream, char value)
+{
+	fputc(value, stream ? _files[stream] : stdout);
+}
+
 static u8 _find_slot(void)
 {
-	u8 i;
-	for(i = 0; i < ARRLEN(_files); ++i)
+	u32 i;
+	for(i = 1; i < ARRLEN(_files); ++i)
 	{
 		if(!_files[i])
 		{
@@ -179,38 +185,43 @@ static u8 _find_slot(void)
 
 static u8 file_open(const char *filename, const char *mode)
 {
-	u8 rv, id = _find_slot();
-	printf("%s", filename);
-	_files[id] = rv = fopen(filename, mode);
-	return rv ? id : 0;
+	u8 id = _find_slot();
+	return (_files[id] = fopen(filename, mode)) ? id : 0;
 }
 
-static void file_close(u8 stream)
+static void file_close(u8 file)
 {
-	fclose(_files[stream]);
-	_files[stream] = 0;
+	fclose(_files[file]);
+	_files[file] = 0;
 }
 
-static void file_write(u8 stream, u8 bank, u16 addr, u16 size)
+static void file_write(u8 file, u8 bank, u16 addr, u16 size)
 {
-	/* TODO */
-}
-
-static void file_read(u8 stream, u8 bank, u16 addr, u16 size)
-{
-	if(stream == 0)
+	if(file)
 	{
-		/* TODO */
+		fwrite(_calculate_ptr(bank, addr), 1, size, _files[file]);
 	}
-	else
+}
+
+static void file_read(u8 file, u8 bank, u16 addr, u16 size)
+{
+	if(file)
 	{
-		fread(_calculate_ptr(bank, addr), 1, size, _files[stream]);
+		fread(_calculate_ptr(bank, addr), 1, size, _files[file]);
 	}
 }
 
 static void file_seek(u8 file, u32 pos)
 {
-	/* TODO */
+	if(file)
+	{
+		fseek(_files[file], pos, SEEK_SET);
+	}
+}
+
+static u32 file_tell(u8 file)
+{
+	return file ? ftell(_files[file]) : 0;
 }
 
 static void file_copy(const char *dst, const char *src)
@@ -228,24 +239,6 @@ static void file_delete(const char *filename)
 	/* TODO */
 }
 
-static u32 file_size(const char *filename)
-{
-	/* TODO */
-	return 0;
-}
-
-static void stream_chr(u8 stream, char value)
-{
-	if(stream == 0)
-	{
-		fputc(value, stdout);
-	}
-	else
-	{
-		/* TODO */
-	}
-}
-
 #endif
 
 /* PRINT */
@@ -254,7 +247,7 @@ static void stream_str(u8 stream, const char *s)
 	char c;
 	while((c = *s++))
 	{
-		stream_chr(stream, c);
+		stream_char(stream, c);
 	}
 }
 
@@ -263,7 +256,7 @@ static void stream_str_P(u8 stream, const char *s)
 	char c;
 	while((c = pgm_read_byte(s++)))
 	{
-		stream_chr(stream, c);
+		stream_char(stream, c);
 	}
 }
 
@@ -272,13 +265,16 @@ static void stream_str_X(u8 stream, u8 bank, u16 addr)
 	char c;
 	while((c = memory_r8(bank, addr++)))
 	{
-		stream_chr(stream, c);
+		stream_char(stream, c);
 	}
 }
 
 static void stream_str_ext_X(u8 stream, u8 bank, u16 addr, u16 len)
 {
-	/* TODO */
+	while(len--)
+	{
+		stream_char(stream, memory_r8(bank, addr++));
+	}
 }
 
 static void stream_dec(u8 stream, u32 value)

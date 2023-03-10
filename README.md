@@ -244,12 +244,12 @@ There are four types of loops:
 
 ```
 for c = 'A' to 'Z' {
-    print_chr(0, c);
+    print_char(0, c);
 }
 
 for i = 0 to 100 inc 5 {
     print_dec(0, i);
-    print_chr(0, '\n');
+    print_char(0, '\n');
 }
 ```
 
@@ -261,7 +261,7 @@ for i = 0 to 100 inc 5 {
 i = 1;
 while le(i, 10) {
     print_dec(0, i);
-    print_chr(0, '\n');
+    print_char(0, '\n');
     i = add(i, 1);
 }
 ```
@@ -297,7 +297,7 @@ loop {
     else {
         print_str("Your number ");
         print_dec(number);
-		print_chr('\n');
+		print_char('\n');
     }
 
 ### switch Branch (not yet implemented)

@@ -1,32 +1,33 @@
 CC=gcc
-CFLAGS=-I'include/' \
+CFLAGS=\
 	-Werror=uninitialized \
 	-Werror=return-type \
 	-Werror=implicit-function-declaration \
 	-Wall -Wextra -pedantic -std=c99 -O2 -g -DDEBUG -DPLATFORM=PLATFORM_LINUX
 
 LDFLAGS=-lm
-
-INCLUDE=include
-DEPS=types
-SRC=src
-OBJ=obj
-OBJS=main
-
-_DEPS=$(patsubst %, $(INCLUDE)/%.h, $(DEPS))
-_OBJS=$(patsubst %, $(OBJ)/%.o, $(OBJS))
+MAIN=src/main.c
+SRC=src/builtin.c \
+	src/error.c \
+	src/instr.c \
+	src/interpreter.c \
+	src/memory.c \
+	src/parser.c \
+	src/stream.c \
+	src/token.c \
+	src/tokenizer.c \
+	src/util.c \
+	$(MAIN)
 
 TARGET=nanoc
 
-$(OBJ)/%.o: $(SRC)/%.c $(_DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+all: $(SRC)
+	$(CC) -o $(TARGET) $(MAIN) $(CFLAGS) $(LDFLAGS)
 
-all: $(_OBJS)
-	$(CC) -o $(TARGET) $(_OBJS) $(LDFLAGS)
-
+.PHONY: avr
 avr:
 	make -f avr.mk
 
 .PHONY: clean
 clean:
-	rm -f $(OBJ)/*.o
+	rm -f $(TARGET)

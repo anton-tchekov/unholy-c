@@ -17,8 +17,8 @@
 #include "parser.c"
 #include "interpreter.c"
 
-static const char *_usage_str PROGMEM = "Usage: ./nanoc [file]\n";
-static const char *_fail_open_str PROGMEM = "Failed to open file ";
+static const char *const _usage_str PROGMEM = "Usage: ./nanoc [file]\n";
+static const char *const _fail_open_str PROGMEM = "Failed to open file ";
 
 #if PLATFORM == PLATFORM_LINUX
 int main(int argc, char **argv)
@@ -45,35 +45,28 @@ int main(void)
 	filename = "life.uhc";
 #endif
 
-	printf("here!\n");
-
 	if(!(file = file_open(filename, "r")))
 	{
 		stream_str_P(0, _fail_open_str);
 		stream_str(0, filename);
-		stream_chr(0, '\n');
+		stream_char(0, '\n');
 		return 1;
 	}
-
-	printf("here!\n");
 
 	file_read(file, BANK_INPUT, 0, 0x8000);
 	file_close(file);
 
-	printf("here!\n");
-
 	tokenizer_init();
-	ret = parser_compile();
-	if(ret)
+	if((ret = parser_compile()))
 	{
 		char c;
 		u16 i, s;
 		stream_dec(0, _token.Pos.Row);
-		stream_chr(0, ':');
+		stream_char(0, ':');
 		stream_dec(0, _token.Pos.Col);
 		stream_str(0, ": ");
 		stream_str(0, error_message(ret));
-		stream_chr(0, '\n');
+		stream_char(0, '\n');
 		stream_dec_ext(0, 5, _token.Pos.Row);
 		stream_str(0, " | ");
 
@@ -91,11 +84,11 @@ int main(void)
 				stream_str(0, COLOR_RESET);
 			}
 
-			stream_chr(0, c);
+			stream_char(0, c);
 		}
 
 		stream_str(0, COLOR_RESET);
-		stream_chr(0, '\n');
+		stream_char(0, '\n');
 		return 1;
 	}
 
@@ -109,7 +102,7 @@ int main(void)
 	{
 	}
 
-#if PLATFORM == PLATFORM_LINUX
+#if PLATFORM == PLATFORM_AVR
 	for(;;)
 	{
 	}

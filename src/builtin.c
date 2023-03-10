@@ -323,12 +323,12 @@ static u32 _isxdigit(u32 *p)
 
 static u32 _tolower(u32 *p)
 {
-	return tolower((int)p[0]);
+	return tolower(p[0]);
 }
 
 static u32 _toupper(u32 *p)
 {
-	return toupper((int)p[0]);
+	return toupper(p[0]);
 }
 
 /* MEMORY */
@@ -461,9 +461,9 @@ static u32 _print_float_ext(u32 *p)
 	return 0;
 }
 
-static u32 _print_chr(u32 *p)
+static u32 _print_char(u32 *p)
 {
-	stream_chr(p[0], p[1]);
+	stream_char(p[0], p[1]);
 	return 0;
 }
 
@@ -562,15 +562,15 @@ static const i8 _num_parameters[] PROGMEM =
 	0, /* rand  */
 
 	/* IO */
-	1, /* print_str */
-	1, /* print_str_ext */
-	1, /* print_dec */
-	1, /* print_dec_ext */
-	1, /* print_hex */
-	1, /* print_hex_ext */
-	1, /* print_float */
-	1, /* print_float_ext */
-	1, /* print_char */
+	2, /* print_str */
+	3, /* print_str_ext */
+	2, /* print_dec */
+	3, /* print_dec_ext */
+	2, /* print_hex */
+	3, /* print_hex_ext */
+	2, /* print_float */
+	4, /* print_float_ext */
+	2, /* print_char */
 };
 
 typedef u32 (*const builtin_ptr)(u32 *);
@@ -678,7 +678,7 @@ static builtin_ptr _builtins[] PROGMEM =
 	_print_hex_ext,
 	_print_float,
 	_print_float_ext,
-	_print_chr
+	_print_char
 };
 
 static const char _identifiers[] PROGMEM =
@@ -785,7 +785,7 @@ static const char _identifiers[] PROGMEM =
 	"print_hex_ext\0"
 	"print_float\0"
 	"print_float_ext\0"
-	"print_chr\0|";
+	"print_char\0|";
 
 #ifdef DEBUG_INTERPRETER
 

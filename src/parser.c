@@ -847,6 +847,7 @@ static i8 _parser_for(void)
 	_emit8(INSTR_CALL);
 	_emit8(2);
 	idx_cmp = _parser.Offset;
+	_skip(2);
 
 	chg = 1;
 	type = TT_INC;
