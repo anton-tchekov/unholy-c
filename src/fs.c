@@ -25,6 +25,11 @@ static void file_close(u8 stream)
 
 #ifdef ENABLE_FILE
 
+static void file_putc(u8 file, char c)
+{
+	/* TODO */
+}
+
 static u16 file_write(u8 file, u8 bank, u16 addr, u16 size)
 {
 	/* TODO */
@@ -87,14 +92,6 @@ static u16 file_read(u8 file, u8 bank, u16 addr, u16 size)
 	return 0;
 }
 
-static void file_putc(u8 file, char c)
-{
-	if(file)
-	{
-		fputc(c, _files[file]);
-	}
-}
-
 static void file_close(u8 file)
 {
 	fclose(_files[file]);
@@ -102,6 +99,14 @@ static void file_close(u8 file)
 }
 
 #ifdef ENABLE_FILE
+
+static void file_putc(u8 file, char c)
+{
+	if(file)
+	{
+		fputc(c, _files[file]);
+	}
+}
 
 static u16 file_write(u8 file, u8 bank, u16 addr, u16 size)
 {

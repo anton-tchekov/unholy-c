@@ -6,41 +6,41 @@ fn main()
 	while lt(i, 4) {
 		switch i [
 			{
-				print_str(0, "0\n");
+				fputs(0, "0\n");
 			} =>
 			{
 				switch i [
 					{
-						print_str(0, "0\n");
+						fputs(0, "0\n");
 					} =>
 					{
-						print_str(0, "zwei\n");
+						fputs(0, "zwei\n");
 						break;
-						print_str(0, "1\n");
+						fputs(0, "1\n");
 					},
 					{
-						print_str(0, "Hello 2\n");
+						fputs(0, "Hello 2\n");
 					},
 					{
-						print_str(0, "This 3\n");
+						fputs(0, "This 3\n");
 					}
 				]
 
-				print_str(0, "zwei\n");
+				fputs(0, "zwei\n");
 				break;
-				print_str(0, "1\n");
+				fputs(0, "1\n");
 			},
 			{
-				print_str(0, "Hello 2\n");
+				fputs(0, "Hello 2\n");
 			},
 			{
-				print_str(0, "This 3\n");
+				fputs(0, "This 3\n");
 			}
 		]
 
 		i = add(i, 1);
 	}
 
-	print_str(0, "end\n");
+	fputs(0, "end\n");
 }
 

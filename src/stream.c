@@ -9,10 +9,12 @@ static void print_char(u8 stream, char value)
 	{
 		uart_tx(value);
 	}
+#ifdef ENABLE_FILE
 	else
 	{
 		file_putc(stream, value);
 	}
+#endif
 }
 
 /* STRING */
@@ -54,36 +56,36 @@ static void print_str_ext_X(u8 stream, u8 bank, u16 addr, u16 len)
 /* DEC */
 static void _print_radix(u8 stream, i32 value, u8 radix, u8 width)
 {
-	char *tp, tmp[16];
+	char *p, buf[16];
 	u8 sign, i, len, pad;
 	u32 v;
 
-	tp = tmp;
+	p = buf;
 	sign = (radix == 10 && value < 0);
 	v = sign ? -value : value;
-	while(v || tp == tmp)
+	while(v || p == buf)
 	{
 		i = v % radix;
 		v /= radix;
-		*tp++ = (i < 10) ? i + '0' : i + 'a' - 10;
+		*p++ = (i < 10) ? i + '0' : i + 'a' - 10;
 	}
 
 	if(sign)
 	{
-		*tp++ = '-';
+		*p++ = '-';
 	}
 
-	len = tp - tmp;
+	len = p - buf;
 	pad = (radix == 10) ? ' ' : ';';
 	while(len < width)
 	{
-		*tp++ = pad;
+		*p++ = pad;
 		++len;
 	}
 
-	while(tp > tmp)
+	while(p > buf)
 	{
-		print_char(stream, *--tp);
+		print_char(stream, *--p);
 	}
 }
 
@@ -113,7 +115,23 @@ static void print_hex_ext(u8 stream, u32 value, u8 width)
 /* FLOAT */
 static void print_float_ext(u8 stream, f32 value, u8 width, u8 decimal)
 {
-	/* TODO */
+	char c;
+	u32 int_part;
+
+	int_part = value;
+	_print_radix(stream, int_part, 10, width);
+	value -= int_part;
+	if(decimal)
+	{
+		print_char(stream, '.');
+		while(decimal--)
+		{
+			value *= 10.0;
+			c = value;
+			print_char(stream, '0' + c);
+			value -= c;
+		}
+	}
 }
 
 static void print_float(u8 stream, f32 value)

@@ -215,6 +215,51 @@ Exactly the same as in `<math.h>`
 | `rand`   | Random Number |
 | `srand`  | Set RNG Seed  |
 
+### Timer
+| Function | Meaning                            |
+|----------|------------------------------------|
+| `millis` | Milliseconds since program started |
+
+### Memory
+| Function | Meaning                                 |
+|----------|-----------------------------------------|
+| `w32`    | Store 32-bit value at address           |
+| `w16`    | Store 16-bit value at address           |
+| `w8`     | Store 8-bit value at address            |
+| `r32`    | Load 32-bit value from address          |
+| `ru16`   | Load unsigned 16-bit value from address |
+| `ru8`    | Load unsigned 8-bit value from address  |
+| `rs16`   | Load signed 16-bit value from address   |
+| `rs8`    | Load signed 8-bit value from address    |
+| `mcpy`   | memmove                                 |
+| `mcmp`   | memcmp                                  |
+| `mchr`   | memchr                                  |
+| `mset`   | memset                                  |
+
+### File/Stream
+| Function | Meaning                                                |
+|----------|--------------------------------------------------------|
+| `fgetc`  |                                                        |
+| `fgets`  |                                                        |
+| `fputc`  |                                                        |
+| `fputs`  | Print string (null-terminated)                         |
+| `fputse` | Print string (with length)                             |
+| `fputd`  | Print decimal                                          |
+| `fputde` | Print decimal extended (left-pad with spaces)          |
+| `fputx`  | Print hexadecimal                                      |
+| `fputxe` | Print hexadecimal extended (left-pad with zeros)       |
+| `fputf`  | Print float                                            |
+| `fputfe` | Print float extended (left-pad with spaces, precision) |
+| `fopen`  |                                                        |
+| `fread`  |                                                        |
+| `fclose` |                                                        |
+| `fwrite` |                                                        |
+| `fseek`  |                                                        |
+| `ftell`  |                                                        |
+| `fcopy`  | Copy file                                              |
+| `fmove`  | Move/rename file                                       |
+| `fdel`   | Delete file                                            |
+
 ## Functions
 
 **Example:**
@@ -242,12 +287,12 @@ There are four types of loops:
 
 ```
 for c = 'A' to 'Z' {
-    print_char(0, c);
+    fputc(0, c);
 }
 
 for i = 0 to 100 inc 5 {
-    print_dec(0, i);
-    print_char(0, '\n');
+    fputd(0, i);
+    fputc(0, '\n');
 }
 ```
 
@@ -258,8 +303,8 @@ for i = 0 to 100 inc 5 {
 ```
 i = 1;
 while le(i, 10) {
-    print_dec(0, i);
-    print_char(0, '\n');
+    fputd(0, i);
+    fputc(0, '\n');
     i = add(i, 1);
 }
 ```
@@ -287,15 +332,15 @@ loop {
 **Example:**
 
     if lt(number, 10) {
-        print_str("Your number is less than 10\n");
+        fputs(0, "Your number is less than 10\n");
     }
     elif eq(number, 42) {
-        print_str("Good choice!\n");
+        fputs(0, "Good choice!\n");
     }
     else {
-        print_str("Your number ");
-        print_dec(number);
-		print_char('\n');
+        fputs(0, "Your number ");
+        fputd(0, number);
+		fputc(0, '\n');
     }
 
 ### switch Branch
@@ -327,16 +372,16 @@ The arrow operator after a block denotes fall-through behaviour.
 
     switch n [
         {
-            print_str("n is zero\n");
+            fputs(0, "n is zero\n");
         },
         {
-            print_str("n is one\n");
+            fputs(0, "n is one\n");
         } ->
         {
-            print_str("n is one or two\n");
+            fputs(0, "n is one or two\n");
         },
         {
-            print_str("n is three\n");
+            fputs(0, "n is three\n");
         }
     ]
 
@@ -482,8 +527,9 @@ two stacks and the parameter copying when calling a function.
 
 ### Features
 
-- function pointers (and variadic functions?)
 - implement compile time constants
+
+- function pointers and variadic functions ?
 - better switch-case
 
 ### Known Bugs

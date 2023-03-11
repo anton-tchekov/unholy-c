@@ -425,37 +425,37 @@ static u32 _rand(u32 *p)
 #endif
 
 /* IO */
-static u32 _print_str(u32 *p)
+static u32 _fputs(u32 *p)
 {
 	print_str_X(p[0], BANK_INTERPRETER, p[1]);
 	return 0;
 }
 
-static u32 _print_str_ext(u32 *p)
+static u32 _fputse(u32 *p)
 {
 	print_str_ext_X(p[0], BANK_INTERPRETER, p[1], p[2]);
 	return 0;
 }
 
-static u32 _print_dec(u32 *p)
+static u32 _fputd(u32 *p)
 {
 	print_dec(p[0], p[1]);
 	return 0;
 }
 
-static u32 _print_dec_ext(u32 *p)
+static u32 _fputde(u32 *p)
 {
 	print_dec_ext(p[0], p[1], p[2]);
 	return 0;
 }
 
-static u32 _print_hex(u32 *p)
+static u32 _fputx(u32 *p)
 {
 	print_hex(p[0], p[1]);
 	return 0;
 }
 
-static u32 _print_hex_ext(u32 *p)
+static u32 _fputxe(u32 *p)
 {
 	print_hex_ext(p[0], p[1], p[2]);
 	return 0;
@@ -463,13 +463,13 @@ static u32 _print_hex_ext(u32 *p)
 
 #ifdef ENABLE_FLOAT
 
-static u32 _print_float(u32 *p)
+static u32 _fputf(u32 *p)
 {
 	print_float(p[0], ibtf(p[0]));
 	return 0;
 }
 
-static u32 _print_float_ext(u32 *p)
+static u32 _fputfe(u32 *p)
 {
 	print_float_ext(p[0], ibtf(p[1]), p[2], p[3]);
 	return 0;
@@ -477,7 +477,7 @@ static u32 _print_float_ext(u32 *p)
 
 #endif
 
-static u32 _print_char(u32 *p)
+static u32 _fputc(u32 *p)
 {
 	print_char(p[0], p[1]);
 	return 0;
@@ -633,28 +633,28 @@ static const i8 _num_parameters[] PROGMEM =
 #endif
 
 	/* IO */
-	2, /* print_str */
-	3, /* print_str_ext */
-	2, /* print_dec */
-	3, /* print_dec_ext */
-	2, /* print_hex */
-	3, /* print_hex_ext */
+	2, /* fputs */
+	3, /* fputse */
+	2, /* fputd */
+	3, /* fputde */
+	2, /* fputx */
+	3, /* fputxe */
 
 #ifdef ENABLE_FLOAT
-	2, /* print_float */
-	4, /* print_float_ext */
+	2, /* fputf */
+	4, /* fputfe */
 #endif
 
-	2, /* print_char */
+	2, /* fputc */
 
 #ifdef ENABLE_FILE
 	/* FILE */
-	2, /* file_open  */
-	3, /* file_read  */
-	1, /* file_close */
-	3, /* file_write */
-	2, /* file_seek  */
-	1, /* file_tell  */
+	2, /* fopen  */
+	3, /* fread  */
+	1, /* fclose */
+	3, /* fwrite */
+	2, /* fseek  */
+	1, /* ftell  */
 #endif
 
 	0, /* millis */
@@ -763,19 +763,19 @@ static builtin_ptr _builtins[] PROGMEM =
 #endif
 
 	/* IO */
-	_print_str,
-	_print_str_ext,
-	_print_dec,
-	_print_dec_ext,
-	_print_hex,
-	_print_hex_ext,
+	_fputs,
+	_fputse,
+	_fputd,
+	_fputde,
+	_fputx,
+	_fputxe,
 
 #ifdef ENABLE_FLOAT
-	_print_float,
-	_print_float_ext,
+	_fputf,
+	_fputfe,
 #endif
 
-	_print_char,
+	_fputc,
 
 #ifdef ENABLE_FILE
 	/* FILE */
@@ -892,28 +892,28 @@ static const char _identifiers[] PROGMEM =
 #endif
 
 	/* IO */
-	"print_str\0"
-	"print_str_ext\0"
-	"print_dec\0"
-	"print_dec_ext\0"
-	"print_hex\0"
-	"print_hex_ext\0"
+	"fputs\0"
+	"fputse\0"
+	"fputd\0"
+	"fputde\0"
+	"fputx\0"
+	"fputxe\0"
 
 #ifdef ENABLE_FLOAT
-	"print_float\0"
-	"print_float_ext\0"
+	"fputf\0"
+	"fputfe\0"
 #endif
 
-	"print_char\0"
+	"fputc\0"
 
 #ifdef ENABLE_FILE
 	/* FILE */
-	"file_open\0"
-	"file_read\0"
-	"file_close\0"
-	"file_write\0"
-	"file_seek\0"
-	"file_tell\0"
+	"fopen\0"
+	"fread\0"
+	"fclose\0"
+	"fwrite\0"
+	"fseek\0"
+	"ftell\0"
 #endif
 
 	"millis\0"

@@ -60,7 +60,7 @@ fn board_update(board1, board2)
 
 fn clear()
 {
-	print_str(0, "\x1B[H\x1B[J");
+	fputs(0, "\x1B[H\x1B[J");
 }
 
 fn board_draw(board)
@@ -73,7 +73,7 @@ fn board_draw(board)
 			_draw_char(board_get(board, x, y));
 		}
 
-		print_char(0, '\n');
+		fputc(0, '\n');
 	}
 }
 
@@ -111,7 +111,7 @@ fn _draw_char(v)
 		c = ' ';
 	}
 
-	print_char(0, c);
+	fputc(0, c);
 }
 
 fn _check_bounds(x, y)

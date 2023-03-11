@@ -2,20 +2,20 @@ fn main()
 {
 	var i;
 
-	print_str(0, "Hello World\n");
+	fputs(0, "Hello World\n");
 
 	for i = 'A' to 'Z' {
-		print_char(0, i);
+		fputc(0, i);
 	}
-	print_char(0, '\n');
+	fputc(0, '\n');
 
 	for i = 0 to 10 {
-		print_dec(0, i);
-		print_char(0, '\n');
+		fputd(0, i);
+		fputc(0, '\n');
 	}
 
 	for i = 'Z' to 'A' dec 1 {
-		print_char(0, i);
+		fputc(0, i);
 	}
-	print_char(0, '\n');
+	fputc(0, '\n');
 }
