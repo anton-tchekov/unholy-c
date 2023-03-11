@@ -249,9 +249,9 @@ static i8 _parser_main(void)
 	i16 i;
 	if((i = identifier_map_find(&_parser.Functions, _main_str)) < 0)
 	{
-		print_str_P(0, _undefined_reference_str);
-		print_str(0, _main_str);
-		print_str(0, _undefined_reference_end_str);
+		stream_fputs_P(0, _undefined_reference_str);
+		stream_fputs(0, _main_str);
+		stream_fputs(0, _undefined_reference_end_str);
 		TRACE(ERROR_FN_UNDEFINED);
 	}
 
@@ -274,13 +274,13 @@ static i8 _parser_check_impl(void)
 			u16 addr;
 
 			addr = memory_r16(BANK_PARSER, _parser.Functions.Offset + 2 * i);
-			print_str_P(0, _undefined_reference_str);
+			stream_fputs_P(0, _undefined_reference_str);
 			while(is_identifier_char(c = memory_r8(BANK_INPUT, addr++)))
 			{
-				print_char(0, c);
+				stream_fputc(0, c);
 			}
 
-			print_str(0, _undefined_reference_end_str);
+			stream_fputs(0, _undefined_reference_end_str);
 			fail = 1;
 		}
 	}

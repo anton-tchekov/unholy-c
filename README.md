@@ -521,15 +521,12 @@ two stacks and the parameter copying when calling a function.
 ### Priority
 
 - error handling (Optimize undefined reference)
-- timing functions on AVR
-- terminal i/o - Floating point
-- file i/o on AVR - SD-Card
+- timing
+- file and terminal i/o
 
 ### Features
 
-- implement compile time constants
-
-- function pointers and variadic functions ?
+- compile time constants
 - better switch-case
 
 ### Known Bugs

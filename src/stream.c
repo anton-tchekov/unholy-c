@@ -3,7 +3,7 @@
 #define COLOR_RESET  "\033[0m"
 
 /* CHAR */
-static void print_char(u8 stream, char value)
+static void stream_fputc(u8 stream, char value)
 {
 	if(stream == 0)
 	{
@@ -12,44 +12,44 @@ static void print_char(u8 stream, char value)
 #ifdef ENABLE_FILE
 	else
 	{
-		file_putc(stream, value);
+		fs_fputc(stream, value);
 	}
 #endif
 }
 
 /* STRING */
-static void print_str(u8 stream, const char *s)
+static void stream_fputs(u8 stream, const char *s)
 {
 	char c;
 	while((c = *s++))
 	{
-		print_char(stream, c);
+		stream_fputc(stream, c);
 	}
 }
 
-static void print_str_P(u8 stream, const char *s)
+static void stream_fputs_P(u8 stream, const char *s)
 {
 	char c;
 	while((c = pgm_read_byte(s++)))
 	{
-		print_char(stream, c);
+		stream_fputc(stream, c);
 	}
 }
 
-static void print_str_X(u8 stream, u8 bank, u16 addr)
+static void stream_fputs_X(u8 stream, u8 bank, u16 addr)
 {
 	char c;
 	while((c = memory_r8(bank, addr++)))
 	{
-		print_char(stream, c);
+		stream_fputc(stream, c);
 	}
 }
 
-static void print_str_ext_X(u8 stream, u8 bank, u16 addr, u16 len)
+static void stream_fputse_X(u8 stream, u8 bank, u16 addr, u16 len)
 {
 	while(len--)
 	{
-		print_char(stream, memory_r8(bank, addr++));
+		stream_fputc(stream, memory_r8(bank, addr++));
 	}
 }
 
@@ -85,27 +85,27 @@ static void _print_radix(u8 stream, i32 value, u8 radix, u8 width)
 
 	while(p > buf)
 	{
-		print_char(stream, *--p);
+		stream_fputc(stream, *--p);
 	}
 }
 
-static void print_dec(u8 stream, i32 value)
+static void stream_fputd(u8 stream, i32 value)
 {
 	_print_radix(stream, value, 10, 0);
 }
 
-static void print_dec_ext(u8 stream, i32 value, u8 width)
+static void stream_fputde(u8 stream, i32 value, u8 width)
 {
 	_print_radix(stream, value, 10, width);
 }
 
 /* HEX */
-static void print_hex(u8 stream, u32 value)
+static void stream_fputx(u8 stream, u32 value)
 {
 	_print_radix(stream, value, 16, 0);
 }
 
-static void print_hex_ext(u8 stream, u32 value, u8 width)
+static void stream_fputxe(u8 stream, u32 value, u8 width)
 {
 	_print_radix(stream, value, 16, width);
 }
@@ -113,7 +113,7 @@ static void print_hex_ext(u8 stream, u32 value, u8 width)
 #ifdef ENABLE_FLOAT
 
 /* FLOAT */
-static void print_float_ext(u8 stream, f32 value, u8 width, u8 decimal)
+static void stream_fputfe(u8 stream, f32 value, u8 width, u8 decimal)
 {
 	char c;
 	u32 int_part;
@@ -123,20 +123,20 @@ static void print_float_ext(u8 stream, f32 value, u8 width, u8 decimal)
 	value -= int_part;
 	if(decimal)
 	{
-		print_char(stream, '.');
+		stream_fputc(stream, '.');
 		while(decimal--)
 		{
 			value *= 10.0;
 			c = value;
-			print_char(stream, '0' + c);
+			stream_fputc(stream, '0' + c);
 			value -= c;
 		}
 	}
 }
 
-static void print_float(u8 stream, f32 value)
+static void stream_fputf(u8 stream, f32 value)
 {
-	print_float_ext(stream, value, 0, 2);
+	stream_fputfe(stream, value, 0, 2);
 }
 
 #endif

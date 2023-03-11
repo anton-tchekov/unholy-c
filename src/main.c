@@ -42,7 +42,7 @@ int main(void)
 #if PLATFORM == PLATFORM_LINUX
 	if(argc != 2)
 	{
-		print_str_P(0, _usage_str);
+		stream_fputs_P(0, _usage_str);
 		return 1;
 	}
 
@@ -53,30 +53,30 @@ int main(void)
 	filename = "life.uhc";
 #endif
 
-	if(!(file = file_open(filename, "r")))
+	if(!(file = fs_fopen(filename, "r")))
 	{
-		print_str_P(0, _fail_open_str);
-		print_str(0, filename);
-		print_char(0, '\n');
+		stream_fputs_P(0, _fail_open_str);
+		stream_fputs(0, filename);
+		stream_fputc(0, '\n');
 		return 1;
 	}
 
-	memory_w8(BANK_INPUT, file_read(file, BANK_INPUT, 0, 0x8000), '\0');
-	file_close(file);
+	memory_w8(BANK_INPUT, fs_fread(file, BANK_INPUT, 0, 0x8000), '\0');
+	fs_fclose(file);
 
 	tokenizer_init();
 	if((ret = parser_compile()) && ret != -ERROR_FN_UNDEFINED-1)
 	{
 		char c;
 		u16 i, s;
-		print_dec(0, _token.Pos.Row);
-		print_char(0, ':');
-		print_dec(0, _token.Pos.Col);
-		print_str(0, ": ");
-		print_str(0, error_message(ret));
-		print_char(0, '\n');
-		print_dec_ext(0, _token.Pos.Row, 5);
-		print_str(0, " | ");
+		stream_fputd(0, _token.Pos.Row);
+		stream_fputc(0, ':');
+		stream_fputd(0, _token.Pos.Col);
+		stream_fputs(0, ": ");
+		stream_fputs(0, error_message(ret));
+		stream_fputc(0, '\n');
+		stream_fputde(0, _token.Pos.Row, 5);
+		stream_fputs(0, " | ");
 
 		i = 0;
 		s = _tokenizer.LineBegin;
@@ -84,19 +84,19 @@ int main(void)
 		{
 			if(i == _token.Pos.Col)
 			{
-				print_str(0, COLOR_RED);
+				stream_fputs(0, COLOR_RED);
 			}
 
 			if(i == _tokenizer.Pos.Col)
 			{
-				print_str(0, COLOR_RESET);
+				stream_fputs(0, COLOR_RESET);
 			}
 
-			print_char(0, c);
+			stream_fputc(0, c);
 		}
 
-		print_str(0, COLOR_RESET);
-		print_char(0, '\n');
+		stream_fputs(0, COLOR_RESET);
+		stream_fputc(0, '\n');
 		return 1;
 	}
 

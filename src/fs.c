@@ -6,42 +6,42 @@ static void fs_init(void)
 	/* TODO */
 }
 
-static u8 file_open(const char *filename, const char *mode)
+static u8 fs_fopen(const char *filename, const char *mode)
 {
 	/* TODO */
 	return 1;
 }
 
-static u16 file_read(u8 file, u8 bank, u16 addr, u16 size)
+static u16 fs_fread(u8 file, u8 bank, u16 addr, u16 size)
 {
 	/* TODO */
 	return 0;
 }
 
-static void file_close(u8 stream)
+static void fs_fclose(u8 stream)
 {
 	/* TODO */
 }
 
 #ifdef ENABLE_FILE
 
-static void file_putc(u8 file, char c)
+static void fs_fputc(u8 file, char c)
 {
 	/* TODO */
 }
 
-static u16 file_write(u8 file, u8 bank, u16 addr, u16 size)
+static u16 fs_fwrite(u8 file, u8 bank, u16 addr, u16 size)
 {
 	/* TODO */
 	return 0;
 }
 
-static void file_seek(u8 file, u32 pos)
+static void fs_fseek(u8 file, u32 pos)
 {
 	/* TODO */
 }
 
-static u32 file_tell(u8 file)
+static u32 fs_ftell(u8 file)
 {
 	/* TODO */
 	return 0;
@@ -76,13 +76,13 @@ static void fs_init(void)
 	/* Do Nothing */
 }
 
-static u8 file_open(const char *filename, const char *mode)
+static u8 fs_fopen(const char *filename, const char *mode)
 {
 	u8 id = _find_slot();
 	return (_files[id] = fopen(filename, mode)) ? id : 0;
 }
 
-static u16 file_read(u8 file, u8 bank, u16 addr, u16 size)
+static u16 fs_fread(u8 file, u8 bank, u16 addr, u16 size)
 {
 	if(file)
 	{
@@ -92,7 +92,7 @@ static u16 file_read(u8 file, u8 bank, u16 addr, u16 size)
 	return 0;
 }
 
-static void file_close(u8 file)
+static void fs_fclose(u8 file)
 {
 	fclose(_files[file]);
 	_files[file] = 0;
@@ -100,7 +100,7 @@ static void file_close(u8 file)
 
 #ifdef ENABLE_FILE
 
-static void file_putc(u8 file, char c)
+static void fs_fputc(u8 file, char c)
 {
 	if(file)
 	{
@@ -108,7 +108,7 @@ static void file_putc(u8 file, char c)
 	}
 }
 
-static u16 file_write(u8 file, u8 bank, u16 addr, u16 size)
+static u16 fs_fwrite(u8 file, u8 bank, u16 addr, u16 size)
 {
 	if(file)
 	{
@@ -118,7 +118,7 @@ static u16 file_write(u8 file, u8 bank, u16 addr, u16 size)
 	return 0;
 }
 
-static void file_seek(u8 file, u32 pos)
+static void fs_fseek(u8 file, u32 pos)
 {
 	if(file)
 	{
@@ -126,7 +126,7 @@ static void file_seek(u8 file, u32 pos)
 	}
 }
 
-static u32 file_tell(u8 file)
+static u32 fs_ftell(u8 file)
 {
 	return file ? ftell(_files[file]) : 0;
 }

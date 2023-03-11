@@ -50,7 +50,7 @@ src/builtin.c:394:12:_mcmp	8	static
 src/memory.c:16:12:memory_r32.constprop	12	static
 src/builtin.c:361:12:_r32	2	static
 src/util.c:4:11:_string_find.constprop	2	static
-src/stream.c:21:13:print_str.constprop	4	static
+src/stream.c:21:13:stream_fputs.constprop	4	static
 src/builtin.c:446:12:_fputde	3	static
 src/tokenizer.c:88:11:_tokenizer_char	6	static
 src/builtin.c:428:12:_fputs	5	static

@@ -427,37 +427,37 @@ static u32 _rand(u32 *p)
 /* IO */
 static u32 _fputs(u32 *p)
 {
-	print_str_X(p[0], BANK_INTERPRETER, p[1]);
+	stream_fputs_X(p[0], BANK_INTERPRETER, p[1]);
 	return 0;
 }
 
 static u32 _fputse(u32 *p)
 {
-	print_str_ext_X(p[0], BANK_INTERPRETER, p[1], p[2]);
+	stream_fputse_X(p[0], BANK_INTERPRETER, p[1], p[2]);
 	return 0;
 }
 
 static u32 _fputd(u32 *p)
 {
-	print_dec(p[0], p[1]);
+	stream_fputd(p[0], p[1]);
 	return 0;
 }
 
 static u32 _fputde(u32 *p)
 {
-	print_dec_ext(p[0], p[1], p[2]);
+	stream_fputde(p[0], p[1], p[2]);
 	return 0;
 }
 
 static u32 _fputx(u32 *p)
 {
-	print_hex(p[0], p[1]);
+	stream_fputx(p[0], p[1]);
 	return 0;
 }
 
 static u32 _fputxe(u32 *p)
 {
-	print_hex_ext(p[0], p[1], p[2]);
+	stream_fputxe(p[0], p[1], p[2]);
 	return 0;
 }
 
@@ -465,13 +465,13 @@ static u32 _fputxe(u32 *p)
 
 static u32 _fputf(u32 *p)
 {
-	print_float(p[0], ibtf(p[0]));
+	stream_fputf(p[0], ibtf(p[0]));
 	return 0;
 }
 
 static u32 _fputfe(u32 *p)
 {
-	print_float_ext(p[0], ibtf(p[1]), p[2], p[3]);
+	stream_fputfe(p[0], ibtf(p[1]), p[2], p[3]);
 	return 0;
 }
 
@@ -479,7 +479,7 @@ static u32 _fputfe(u32 *p)
 
 static u32 _fputc(u32 *p)
 {
-	print_char(p[0], p[1]);
+	stream_fputc(p[0], p[1]);
 	return 0;
 }
 
@@ -491,37 +491,37 @@ static u32 _file_open(u32 *p)
 	char name_buf[16], mode_buf[4];
 	xmem_read(BANK_INTERPRETER, p[0], name_buf, sizeof(name_buf));
 	xmem_read(BANK_INTERPRETER, p[1], mode_buf, sizeof(mode_buf));
-	return file_open(name_buf, mode_buf);
+	return fs_fopen(name_buf, mode_buf);
 	return 0;
 }
 
 static u32 _file_read(u32 *p)
 {
-	file_read(p[0], BANK_INTERPRETER, p[1], p[2]);
+	fs_fread(p[0], BANK_INTERPRETER, p[1], p[2]);
 	return 0;
 }
 
 static u32 _file_close(u32 *p)
 {
-	file_close(p[0]);
+	fs_fclose(p[0]);
 	return 0;
 }
 
 static u32 _file_write(u32 *p)
 {
-	file_write(p[0], BANK_INTERPRETER, p[1], p[2]);
+	fs_fwrite(p[0], BANK_INTERPRETER, p[1], p[2]);
 	return 0;
 }
 
 static u32 _file_seek(u32 *p)
 {
-	file_seek(p[0], p[1]);
+	fs_fseek(p[0], p[1]);
 	return 0;
 }
 
 static u32 _file_tell(u32 *p)
 {
-	return file_tell(p[0]);
+	return fs_ftell(p[0]);
 }
 
 #endif
