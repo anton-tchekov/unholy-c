@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -9,7 +8,10 @@
 #include "util.c"
 #include "instr.c"
 #include "error.c"
+#include "xmem.c"
 #include "memory.c"
+#include "uart.c"
+#include "fs.c"
 #include "stream.c"
 #include "builtin.c"
 #include "token.c"
@@ -31,6 +33,10 @@ int main(void)
 	Interpreter i;
 	const char *filename;
 
+	uart_init();
+	xmem_init();
+	fs_init();
+
 #if PLATFORM == PLATFORM_LINUX
 	if(argc != 2)
 	{
@@ -40,9 +46,6 @@ int main(void)
 
 	filename = argv[1];
 #elif PLATFORM == PLATFORM_AVR
-	memory_init();
-	stream_init();
-
 	/* Load specific file from SD-Card for now */
 	/* TODO: Shell, Editor */
 	filename = "life.uhc";
@@ -56,7 +59,7 @@ int main(void)
 		return 1;
 	}
 
-	file_read(file, BANK_INPUT, 0, 0x8000);
+	memory_w8(BANK_INPUT, file_read(file, BANK_INPUT, 0, 0x8000), '\0');
 	file_close(file);
 
 	tokenizer_init();
@@ -75,7 +78,7 @@ int main(void)
 
 		i = 0;
 		s = _tokenizer.LineBegin;
-		for(; (c = memory_r8(BANK_INPUT, s)) != '\n'; ++s, ++i)
+		for(; (c = memory_r8(BANK_INPUT, s)) && c != '\n'; ++s, ++i)
 		{
 			if(i == _token.Pos.Col)
 			{

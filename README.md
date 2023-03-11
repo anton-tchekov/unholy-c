@@ -475,21 +475,22 @@ two stacks and the parameter copying when calling a function.
 
 ### Priority
 
+- Optimize "Undefined reference"
 - error handling
-- memory functions (memcpy, memchr, etc.)
-- file i/o
-- SD-Card
+
+- terminal i/o - UART
+- file i/o  - SD-Card
+- memory functions (memcpy, memchr, etc.) - XMEM
 
 ### Features
 
 - function pointers
-- switch-case
 - constants
+- switch-case
 
 ### Builtin Functions
 
 - data structure / algorithm standard library
-	- prerequisite: function pointers
 	- sorting, hashing, etc.
 
 ### Known Bugs

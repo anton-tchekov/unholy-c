@@ -387,23 +387,23 @@ static u32 _rs8(u32 *p)
 /* bulk memory */
 static u32 _mcpy(u32 *p)
 {
-	memory_mcpy(BANK_INTERPRETER, p[0], p[1], p[2]);
+	memory_cpy(BANK_INTERPRETER, p[0], p[1], p[2]);
 	return 0;
 }
 
 static u32 _mcmp(u32 *p)
 {
-	return memory_mcmp(BANK_INTERPRETER, p[0], p[1], p[2]);
+	return memory_cmp(BANK_INTERPRETER, p[0], p[1], p[2]);
 }
 
 static u32 _mchr(u32 *p)
 {
-	return memory_mchr(BANK_INTERPRETER, p[0], p[1], p[2]);
+	return memory_chr(BANK_INTERPRETER, p[0], p[1], p[2]);
 }
 
 static u32 _mset(u32 *p)
 {
-	memory_mset(BANK_INTERPRETER, p[0], p[1], p[2]);
+	xmem_set(BANK_INTERPRETER, p[0], p[1], p[2]);
 	return 0;
 }
 
@@ -488,9 +488,10 @@ static u32 _print_char(u32 *p)
 /* FILE */
 static u32 _file_open(u32 *p)
 {
-	/*char name_buf[16], mode_buf[4];
-
-	return file_open(name_buf, mode_buf);*/
+	char name_buf[16], mode_buf[4];
+	xmem_read(BANK_INTERPRETER, p[0], name_buf, sizeof(name_buf));
+	xmem_read(BANK_INTERPRETER, p[1], mode_buf, sizeof(mode_buf));
+	return file_open(name_buf, mode_buf);
 	return 0;
 }
 
