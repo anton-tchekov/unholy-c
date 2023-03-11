@@ -238,7 +238,7 @@ Curly braces are required for all control flow contstructs.
 
 There are four types of loops:
 
-- **counting (not yet implemented)**
+- **counting**
 
 ```
 for c = 'A' to 'Z' {
@@ -298,7 +298,7 @@ loop {
 		print_char('\n');
     }
 
-### switch Branch (not yet implemented)
+### switch Branch
 
 The `switch` statement is similar to the classic `switch-case`, but with a few key
 differences. First, there are no case labels. The result of the expression at the
@@ -475,23 +475,16 @@ two stacks and the parameter copying when calling a function.
 
 ### Priority
 
-- Optimize "Undefined reference"
-- error handling
-
-- terminal i/o - UART
-- file i/o  - SD-Card
-- memory functions (memcpy, memchr, etc.) - XMEM
+- error handling (Optimize undefined reference)
+- timing functions on AVR
+- terminal i/o - Floating point
+- file i/o on AVR - SD-Card
 
 ### Features
 
-- function pointers
-- constants
-- switch-case
-
-### Builtin Functions
-
-- data structure / algorithm standard library
-	- sorting, hashing, etc.
+- function pointers (and variadic functions?)
+- implement compile time constants
+- better switch-case
 
 ### Known Bugs
 

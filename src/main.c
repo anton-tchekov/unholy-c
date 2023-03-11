@@ -12,6 +12,7 @@
 #include "memory.c"
 #include "uart.c"
 #include "fs.c"
+#include "timer.c"
 #include "stream.c"
 #include "builtin.c"
 #include "token.c"
@@ -33,6 +34,7 @@ int main(void)
 	Interpreter i;
 	const char *filename;
 
+	timer_init();
 	uart_init();
 	xmem_init();
 	fs_init();

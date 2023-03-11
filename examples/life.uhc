@@ -21,9 +21,18 @@ fn main()
 	loop {
 		board_draw(board1);
 		board_update(board1, board2);
+		delay(100);
 		board_draw(board2);
 		board_update(board2, board1);
+		delay(100);
 	}
+}
+
+fn delay(ms)
+{
+	var end;
+	end = add(millis(), ms);
+	while lt(millis(), end) {}
 }
 
 fn board_update(board1, board2)

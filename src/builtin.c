@@ -526,6 +526,12 @@ static u32 _file_tell(u32 *p)
 
 #endif
 
+static u32 _millis(u32 *p)
+{
+	return millis();
+	(void)p;
+}
+
 static const i8 _num_parameters[] PROGMEM =
 {
 	/* INT */
@@ -650,6 +656,8 @@ static const i8 _num_parameters[] PROGMEM =
 	2, /* file_seek  */
 	1, /* file_tell  */
 #endif
+
+	0, /* millis */
 };
 
 typedef u32 (*const builtin_ptr)(u32 *);
@@ -778,6 +786,8 @@ static builtin_ptr _builtins[] PROGMEM =
 	_file_seek,
 	_file_tell,
 #endif
+
+	_millis,
 };
 
 static const char _identifiers[] PROGMEM =
@@ -905,6 +915,8 @@ static const char _identifiers[] PROGMEM =
 	"file_seek\0"
 	"file_tell\0"
 #endif
+
+	"millis\0"
 
 	"|";
 
