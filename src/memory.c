@@ -41,44 +41,85 @@ static void memory_w32(u8 bank, u16 addr, u32 val)
 
 static void memory_cpy(u8 bank, u16 dest, u16 src, u16 count)
 {
-	/* TODO: Implement memmove, Determine overlap direction! */
-
-	/*u8 chunk[CHUNK_SIZE];
-	while()
+	/* Handle overlap (like memmove), if src == dest, do nothing */
+	if(dest < src)
 	{
-		_xmem_read()
-		_xmem_write()
-	}*/
+		/* Copy direction: Low to high */
+		u16 cur;
+		u8 chunk[CHUNK_SIZE];
+
+		while(count)
+		{
+			cur = count > CHUNK_SIZE ? CHUNK_SIZE : count;
+			xmem_read(bank, src, chunk, cur);
+			xmem_write(bank, dest, chunk, cur);
+			src += cur;
+			dest += cur;
+			count -= cur;
+		}
+	}
+	else if(dest > src)
+	{
+		/* Copy direction: High to low addresses */
+		u16 cur;
+		u8 chunk[CHUNK_SIZE];
+
+		src += count;
+		dest += count;
+		while(count)
+		{
+			cur = count > CHUNK_SIZE ? CHUNK_SIZE : count;
+			src -= cur;
+			dest -= cur;
+			xmem_read(bank, src, chunk, cur);
+			xmem_write(bank, dest, chunk, cur);
+			count -= cur;
+		}
+	}
 }
 
-static u32 memory_cmp(u8 bank, u16 a, u16 b, u16 count)
+static i8 memory_cmp(u8 bank, u16 a, u16 b, u16 count)
 {
-	/* TODO: Implement memcmp */
+	i8 ret;
+	u16 cur;
 	u8 chunk_a[CHUNK_SIZE],
 		chunk_b[CHUNK_SIZE];
 
+	while(count)
+	{
+		cur = count > CHUNK_SIZE ? CHUNK_SIZE : count;
+		xmem_read(bank, a, chunk_a, cur);
+		xmem_read(bank, b, chunk_b, cur);
+		if((ret = memcmp(chunk_a, chunk_b, cur)))
+		{
+			return ret;
+		}
 
+		count -= cur;
+		a += cur;
+		b += cur;
+	}
 
 	return 0;
 }
 
-static u32 memory_chr(u8 bank, u16 addr, u8 value, u16 count)
+static u16 memory_chr(u8 bank, u16 addr, u8 value, u16 count)
 {
-	/* TODO: Implement memchr */
+	u16 cur, ret;
+	u8 chunk[CHUNK_SIZE];
 
-	/*u16 bytes;
-	while(bytes < count)
+	while(count)
 	{
-		_xmem_read(bank, addr, )
-		for(i = 0; i < ; ++i)
+		cur = count > CHUNK_SIZE ? CHUNK_SIZE : count;
+		xmem_read(bank, addr, chunk, cur);
+		if((ret = ((u8 *)memchr(chunk, value, cur) - chunk)))
 		{
-			if(chunk[i] == value)
-			{
-				return addr + i;
-			}
+			return ret;
 		}
 
-		addr += bytes;
-	}*/
+		count -= cur;
+		addr += cur;
+	}
+
 	return 0;
 }

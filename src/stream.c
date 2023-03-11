@@ -54,38 +54,37 @@ static void print_str_ext_X(u8 stream, u8 bank, u16 addr, u16 len)
 /* DEC */
 static void _print_radix(u8 stream, i32 value, u8 radix, u8 width)
 {
-	/* TODO */
-    char tmp[16];
-    char *tp = tmp;
-    int i;
-    unsigned v;
+	char *tp, tmp[16];
+	u8 sign, i, len, pad;
+	u32 v;
 
-    int sign = (radix == 10 && value < 0);
-    if (sign)
-        v = -value;
-    else
-        v = (unsigned)value;
+	tp = tmp;
+	sign = (radix == 10 && value < 0);
+	v = sign ? -value : value;
+	while(v || tp == tmp)
+	{
+		i = v % radix;
+		v /= radix;
+		*tp++ = (i < 10) ? i + '0' : i + 'a' - 10;
+	}
 
-    while (v || tp == tmp)
-    {
-        i = v % radix;
-        v /= radix;
-        if (i < 10)
-          *tp++ = i+'0';
-        else
-          *tp++ = i + 'a' - 10;
-    }
+	if(sign)
+	{
+		*tp++ = '-';
+	}
 
-    int len = tp - tmp;
+	len = tp - tmp;
+	pad = (radix == 10) ? ' ' : ';';
+	while(len < width)
+	{
+		*tp++ = pad;
+		++len;
+	}
 
-    if (sign)
-    {
-        print_char(stream, '-');
-        len++;
-    }
-
-    while (tp > tmp)
-        print_char(stream, *--tp);
+	while(tp > tmp)
+	{
+		print_char(stream, *--tp);
+	}
 }
 
 static void print_dec(u8 stream, i32 value)
