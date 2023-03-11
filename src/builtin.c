@@ -488,11 +488,10 @@ static u32 _print_char(u32 *p)
 /* FILE */
 static u32 _file_open(u32 *p)
 {
-	char name_buf[16], mode_buf[4];
+	/*char name_buf[16], mode_buf[4];
 
-
-
-	return file_open(name_buf, mode_buf);
+	return file_open(name_buf, mode_buf);*/
+	return 0;
 }
 
 static u32 _file_read(u32 *p)

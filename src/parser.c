@@ -270,9 +270,16 @@ static i8 _parser_check_impl(void)
 	{
 		if(!_fn_addr_get(i))
 		{
-			/* TODO !!! */
+			char c;
+			u16 addr;
+
+			addr = memory_r16(BANK_PARSER, _parser.Functions.Offset + 2 * i);
 			print_str_P(0, _undefined_reference_str);
-			/* _output + OFFSET_INPUT + memory_r16(_parser.Functions.Offset + 2 * i) */
+			while(is_identifier_char(c = memory_r8(BANK_INPUT, addr++)))
+			{
+				print_char(0, c);
+			}
+
 			print_str(0, _undefined_reference_end_str);
 			fail = 1;
 		}

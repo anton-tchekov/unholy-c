@@ -17,8 +17,8 @@
 #include "parser.c"
 #include "interpreter.c"
 
-static const char *const _usage_str PROGMEM = "Usage: ./nanoc [file]\n";
-static const char *const _fail_open_str PROGMEM = "Failed to open file ";
+static const char _usage_str[] PROGMEM = "Usage: ./nanoc [file]\n";
+static const char _fail_open_str[] PROGMEM = "Failed to open file ";
 
 #if PLATFORM == PLATFORM_LINUX
 int main(int argc, char **argv)
@@ -60,7 +60,7 @@ int main(void)
 	file_close(file);
 
 	tokenizer_init();
-	if((ret = parser_compile()))
+	if((ret = parser_compile()) && ret != -ERROR_FN_UNDEFINED-1)
 	{
 		char c;
 		u16 i, s;

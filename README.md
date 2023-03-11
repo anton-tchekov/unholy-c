@@ -475,13 +475,15 @@ two stacks and the parameter copying when calling a function.
 
 ### Priority
 
-- file i/o (SD-Card)
+- error handling
 - memory functions (memcpy, memchr, etc.)
+- file i/o
+- SD-Card
 
 ### Features
 
 - function pointers
-- finish switch-case
+- switch-case
 - constants
 
 ### Builtin Functions
