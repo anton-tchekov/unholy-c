@@ -272,29 +272,31 @@ static void _tokenizer_binary(void)
 	_token.Number = n;
 }
 
+#ifdef ENABLE_FLOAT
 static i8 _tokenizer_float(i32 n)
 {
 	char c;
-	f32 f;
+	i32 f, d;
 
-	f = n;
 	c = _tokenizer_advance();
 	if(!isdigit(c))
 	{
 		TRACE(ERROR_EXPECTED_DIGIT);
 	}
 
-	n = 10;
+	f = 0;
+	d = 10;
 	while(isdigit(c))
 	{
-		f += (c - '0') / (f32)n;
-		n *= 10;
+		f = 10 * f + (c - '0');
+		d *= 10;
 		c = _tokenizer_advance();
 	}
 
-	_token.Number = fbti(f);
+	_token.Number = fbti((f32)n + (f32)f / (f32)d);
 	return 0;
 }
+#endif
 
 static i8 _tokenizer_decimal(i8 b)
 {
@@ -324,10 +326,12 @@ static i8 _tokenizer_decimal(i8 b)
 		c = _tokenizer_advance();
 	}
 
+#ifdef ENABLE_FLOAT
 	if(c == '.')
 	{
 		return _tokenizer_float(n);
 	}
+#endif
 
 	_token.Number = is_neg ? -n : n;
 	return 0;

@@ -34,12 +34,15 @@ int main(void)
 #if PLATFORM == PLATFORM_LINUX
 	if(argc != 2)
 	{
-		stream_str_P(0, _usage_str);
+		print_str_P(0, _usage_str);
 		return 1;
 	}
 
 	filename = argv[1];
 #elif PLATFORM == PLATFORM_AVR
+	memory_init();
+	stream_init();
+
 	/* Load specific file from SD-Card for now */
 	/* TODO: Shell, Editor */
 	filename = "life.uhc";
@@ -47,9 +50,9 @@ int main(void)
 
 	if(!(file = file_open(filename, "r")))
 	{
-		stream_str_P(0, _fail_open_str);
-		stream_str(0, filename);
-		stream_char(0, '\n');
+		print_str_P(0, _fail_open_str);
+		print_str(0, filename);
+		print_char(0, '\n');
 		return 1;
 	}
 
@@ -61,34 +64,34 @@ int main(void)
 	{
 		char c;
 		u16 i, s;
-		stream_dec(0, _token.Pos.Row);
-		stream_char(0, ':');
-		stream_dec(0, _token.Pos.Col);
-		stream_str(0, ": ");
-		stream_str(0, error_message(ret));
-		stream_char(0, '\n');
-		stream_dec_ext(0, 5, _token.Pos.Row);
-		stream_str(0, " | ");
+		print_dec(0, _token.Pos.Row);
+		print_char(0, ':');
+		print_dec(0, _token.Pos.Col);
+		print_str(0, ": ");
+		print_str(0, error_message(ret));
+		print_char(0, '\n');
+		print_dec_ext(0, _token.Pos.Row, 5);
+		print_str(0, " | ");
 
 		i = 0;
 		s = _tokenizer.LineBegin;
 		for(; (c = memory_r8(BANK_INPUT, s)) != '\n'; ++s, ++i)
 		{
-			if(i == _tokenizer.Pos.Col)
+			if(i == _token.Pos.Col)
 			{
-				stream_str(0, COLOR_RED);
+				print_str(0, COLOR_RED);
 			}
 
 			if(i == _tokenizer.Pos.Col)
 			{
-				stream_str(0, COLOR_RESET);
+				print_str(0, COLOR_RESET);
 			}
 
-			stream_char(0, c);
+			print_char(0, c);
 		}
 
-		stream_str(0, COLOR_RESET);
-		stream_char(0, '\n');
+		print_str(0, COLOR_RESET);
+		print_char(0, '\n');
 		return 1;
 	}
 

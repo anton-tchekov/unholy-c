@@ -2,10 +2,10 @@
 
 #ifdef DEBUG
 
-#define TRACE(e) \
+#define TRACE(E) \
 	do \
 	{ \
-		i8 __ret = -e - 1; \
+		i8 __ret = -(E) - 1; \
 		fprintf(stderr, "[ Trace ] %s - %s:%d (%s)\n", error_message(__ret), __FILE__, __LINE__, __func__); \
 		return __ret; \
 	} while(0)
@@ -23,10 +23,10 @@
 
 #else
 
-#define TRACE(e) \
+#define TRACE(E) \
 	do \
 	{ \
-		return -e - 1; \
+		return -(E) - 1; \
 	} while(0)
 
 #define RETURN_IF(E) \
@@ -73,7 +73,7 @@
 	ERROR(UNTERMINATED_STRING_LITERAL)
 
 #define GENERATE_ENUM(ENUM) ERROR_##ENUM,
-#define GENERATE_STRING(STRING) static const char STRING_##STRING[] PROGMEM = "ERROR_"#STRING;
+#define GENERATE_STRING(STRING) static const char STRING_##STRING[] PROGMEM = #STRING;
 #define GENERATE_STRING_ARRAY(STRING) STRING_##STRING,
 
 FOREACH_ERROR(GENERATE_STRING)
@@ -85,16 +85,16 @@ enum NANOC_ERROR
 
 static const char *error_message(i8 code)
 {
-	static const char STRING_INV_ERROR_CODE[] PROGMEM = "ERROR_INV_ERROR_CODE";
 	static const char *const _err_msgs[] PROGMEM =
 	{
+		"",
 		FOREACH_ERROR(GENERATE_STRING_ARRAY)
 	};
 
-	i8 idx = -code - 1;
+	i8 idx = -code;
 	if(idx < 0 || idx >= (i8)ARRLEN(_err_msgs))
 	{
-		return STRING_INV_ERROR_CODE;
+		idx = 0;
 	}
 
 	return pgm_read_ptr(_err_msgs + idx);

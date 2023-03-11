@@ -115,6 +115,8 @@ static u32 _ls(u32 *p)
 }
 
 /* FLOAT */
+#ifdef ENABLE_FLOAT
+
 static u32 _itf(u32 *p)
 {
 	return fbti((f32)p[0]);
@@ -265,6 +267,10 @@ static u32 _round(u32 *p)
 	return fbti(round(ibtf(p[0])));
 }
 
+#endif
+
+#ifdef ENABLE_CHAR
+
 /* CHAR */
 static u32 _isupper(u32 *p)
 {
@@ -330,6 +336,8 @@ static u32 _toupper(u32 *p)
 {
 	return toupper(p[0]);
 }
+
+#endif
 
 /* MEMORY */
 static u32 _w32(u32 *p)
@@ -399,6 +407,8 @@ static u32 _mset(u32 *p)
 	return 0;
 }
 
+#ifdef ENABLE_RANDOM
+
 /* RANDOM */
 static u32 _srand(u32 *p)
 {
@@ -412,60 +422,109 @@ static u32 _rand(u32 *p)
 	(void)p;
 }
 
+#endif
+
 /* IO */
 static u32 _print_str(u32 *p)
 {
-	stream_str_X(p[0], BANK_INTERPRETER, p[1]);
+	print_str_X(p[0], BANK_INTERPRETER, p[1]);
 	return 0;
 }
 
 static u32 _print_str_ext(u32 *p)
 {
-	stream_str_ext_X(p[0], BANK_INTERPRETER, p[1], p[2]);
+	print_str_ext_X(p[0], BANK_INTERPRETER, p[1], p[2]);
 	return 0;
 }
 
 static u32 _print_dec(u32 *p)
 {
-	stream_dec(p[0], p[1]);
+	print_dec(p[0], p[1]);
 	return 0;
 }
 
 static u32 _print_dec_ext(u32 *p)
 {
-	stream_dec_ext(p[0], p[1], p[2]);
+	print_dec_ext(p[0], p[1], p[2]);
 	return 0;
 }
 
 static u32 _print_hex(u32 *p)
 {
-	stream_hex(p[0], p[1]);
+	print_hex(p[0], p[1]);
 	return 0;
 }
 
 static u32 _print_hex_ext(u32 *p)
 {
-	stream_hex_ext(p[0], p[1], p[2]);
+	print_hex_ext(p[0], p[1], p[2]);
 	return 0;
 }
 
+#ifdef ENABLE_FLOAT
+
 static u32 _print_float(u32 *p)
 {
-	stream_float(p[0], ibtf(p[0]));
+	print_float(p[0], ibtf(p[0]));
 	return 0;
 }
 
 static u32 _print_float_ext(u32 *p)
 {
-	stream_float_ext(p[0], ibtf(p[1]), p[2], p[3]);
+	print_float_ext(p[0], ibtf(p[1]), p[2], p[3]);
 	return 0;
 }
 
+#endif
+
 static u32 _print_char(u32 *p)
 {
-	stream_char(p[0], p[1]);
+	print_char(p[0], p[1]);
 	return 0;
 }
+
+#ifdef ENABLE_FILE
+
+/* FILE */
+static u32 _file_open(u32 *p)
+{
+	char name_buf[16], mode_buf[4];
+
+
+
+	return file_open(name_buf, mode_buf);
+}
+
+static u32 _file_read(u32 *p)
+{
+	file_read(p[0], BANK_INTERPRETER, p[1], p[2]);
+	return 0;
+}
+
+static u32 _file_close(u32 *p)
+{
+	file_close(p[0]);
+	return 0;
+}
+
+static u32 _file_write(u32 *p)
+{
+	file_write(p[0], BANK_INTERPRETER, p[1], p[2]);
+	return 0;
+}
+
+static u32 _file_seek(u32 *p)
+{
+	file_seek(p[0], p[1]);
+	return 0;
+}
+
+static u32 _file_tell(u32 *p)
+{
+	return file_tell(p[0]);
+}
+
+#endif
 
 static const i8 _num_parameters[] PROGMEM =
 {
@@ -494,6 +553,7 @@ static const i8 _num_parameters[] PROGMEM =
 	2, /* hs   */
 	2, /* ls   */
 
+#ifdef ENABLE_FLOAT
 	/* FLOAT */
 	1, /* itf  */
 	1, /* fti  */
@@ -527,7 +587,9 @@ static const i8 _num_parameters[] PROGMEM =
 	1, /* ceil  */
 	1, /* floor */
 	1, /* round */
+#endif
 
+#ifdef ENABLE_CHAR
 	/* CHAR */
 	1, /* isupper  */
 	1, /* islower  */
@@ -542,6 +604,7 @@ static const i8 _num_parameters[] PROGMEM =
 	1, /* isxdigit */
 	1, /* tolower  */
 	1, /* toupper  */
+#endif
 
 	/* MEMORY */
 	2, /* w32  */
@@ -557,9 +620,11 @@ static const i8 _num_parameters[] PROGMEM =
 	3, /* mchr */
 	3, /* mset */
 
+#ifdef ENABLE_RANDOM
 	/* RANDOM */
 	1, /* srand */
 	0, /* rand  */
+#endif
 
 	/* IO */
 	2, /* print_str */
@@ -568,9 +633,23 @@ static const i8 _num_parameters[] PROGMEM =
 	3, /* print_dec_ext */
 	2, /* print_hex */
 	3, /* print_hex_ext */
+
+#ifdef ENABLE_FLOAT
 	2, /* print_float */
 	4, /* print_float_ext */
+#endif
+
 	2, /* print_char */
+
+#ifdef ENABLE_FILE
+	/* FILE */
+	2, /* file_open  */
+	3, /* file_read  */
+	1, /* file_close */
+	3, /* file_write */
+	2, /* file_seek  */
+	1, /* file_tell  */
+#endif
 };
 
 typedef u32 (*const builtin_ptr)(u32 *);
@@ -602,6 +681,7 @@ static builtin_ptr _builtins[] PROGMEM =
 	_hs,
 	_ls,
 
+#ifdef ENABLE_FLOAT
 	/* FLOAT */
 	_itf,
 	_fti,
@@ -635,7 +715,9 @@ static builtin_ptr _builtins[] PROGMEM =
 	_ceil,
 	_floor,
 	_round,
+#endif
 
+#ifdef ENABLE_CHAR
 	/* CHAR */
 	_isupper,
 	_islower,
@@ -650,6 +732,7 @@ static builtin_ptr _builtins[] PROGMEM =
 	_isxdigit,
 	_tolower,
 	_toupper,
+#endif
 
 	/* MEMORY */
 	_w32,
@@ -665,9 +748,11 @@ static builtin_ptr _builtins[] PROGMEM =
 	_mchr,
 	_mset,
 
+#ifdef ENABLE_RANDOM
 	/* RANDOM */
 	_srand,
 	_rand,
+#endif
 
 	/* IO */
 	_print_str,
@@ -676,9 +761,23 @@ static builtin_ptr _builtins[] PROGMEM =
 	_print_dec_ext,
 	_print_hex,
 	_print_hex_ext,
+
+#ifdef ENABLE_FLOAT
 	_print_float,
 	_print_float_ext,
-	_print_char
+#endif
+
+	_print_char,
+
+#ifdef ENABLE_FILE
+	/* FILE */
+	_file_open,
+	_file_read,
+	_file_close,
+	_file_write,
+	_file_seek,
+	_file_tell,
+#endif
 };
 
 static const char _identifiers[] PROGMEM =
@@ -708,6 +807,7 @@ static const char _identifiers[] PROGMEM =
 	"hs\0"
 	"ls\0"
 
+#ifdef ENABLE_FLOAT
 	/* FLOAT */
 	"itf\0"
 	"fti\0"
@@ -741,7 +841,9 @@ static const char _identifiers[] PROGMEM =
 	"ceil\0"
 	"floor\0"
 	"round\0"
+#endif
 
+#ifdef ENABLE_CHAR
 	/* CHAR */
 	"isupper\0"
 	"islower\0"
@@ -756,6 +858,7 @@ static const char _identifiers[] PROGMEM =
 	"isxdigit\0"
 	"tolower\0"
 	"toupper\0"
+#endif
 
 	/* MEMORY  */
 	"w32\0"
@@ -772,9 +875,11 @@ static const char _identifiers[] PROGMEM =
 	"mchr\0"
 	"mset\0"
 
+#ifdef ENABLE_RANDOM
 	/* RANDOM */
 	"srand\0"
 	"rand\0"
+#endif
 
 	/* IO */
 	"print_str\0"
@@ -783,9 +888,25 @@ static const char _identifiers[] PROGMEM =
 	"print_dec_ext\0"
 	"print_hex\0"
 	"print_hex_ext\0"
+
+#ifdef ENABLE_FLOAT
 	"print_float\0"
 	"print_float_ext\0"
-	"print_char\0|";
+#endif
+
+	"print_char\0"
+
+#ifdef ENABLE_FILE
+	/* FILE */
+	"file_open\0"
+	"file_read\0"
+	"file_close\0"
+	"file_write\0"
+	"file_seek\0"
+	"file_tell\0"
+#endif
+
+	"|";
 
 #ifdef DEBUG_INTERPRETER
 

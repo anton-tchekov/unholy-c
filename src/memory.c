@@ -3,6 +3,31 @@
 /* 384 KiB, split in 6 banks of 64 KiB */
 static u8 _output[3 * 128 * 1024];
 
+static u16 _read_16(u8 *p)
+{
+	return ((u16)p[0]) | (((u16)p[1]) << 8);
+}
+
+static void _write_16(u8 *b, u16 v)
+{
+	b[0] = v & 0xFF;
+	b[1] = v >> 8;
+}
+
+static u32 _read_32(u8 *p)
+{
+	return ((u32)p[0]) | (((u32)p[1]) << 8) |
+		(((u32)p[2]) << 16) | (((u32)p[3]) << 24);
+}
+
+static void _write_32(u8 *b, u32 v)
+{
+	b[0] = v & 0xFF;
+	b[1] = ((v >> 8) & 0xFF);
+	b[2] = ((v >> 16) & 0xFF);
+	b[3] = v >> 24;
+}
+
 static u8 *_bank_ptr(u8 bank)
 {
 	return _output + 0x10000 * bank;

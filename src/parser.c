@@ -238,12 +238,20 @@ static void _parser_call_main(void)
 	_emit8(INSTR_HALT);
 }
 
+static const char _undefined_reference_str[] PROGMEM =
+	"Undefined reference to `";
+
+static const char _undefined_reference_end_str[] = "`\n";
+static char _main_str[] = "main";
+
 static i8 _parser_main(void)
 {
 	i16 i;
-	if((i = identifier_map_find(&_parser.Functions, "main")) < 0)
+	if((i = identifier_map_find(&_parser.Functions, _main_str)) < 0)
 	{
-		printf("Undefined reference to `main`\n");
+		print_str_P(0, _undefined_reference_str);
+		print_str(0, _main_str);
+		print_str(0, _undefined_reference_end_str);
 		TRACE(ERROR_FN_UNDEFINED);
 	}
 
@@ -262,8 +270,10 @@ static i8 _parser_check_impl(void)
 	{
 		if(!_fn_addr_get(i))
 		{
+			/* TODO !!! */
+			print_str_P(0, _undefined_reference_str);
 			/* _output + OFFSET_INPUT + memory_r16(_parser.Functions.Offset + 2 * i) */
-			printf("Undefined reference to `???`\n");
+			print_str(0, _undefined_reference_end_str);
 			fail = 1;
 		}
 	}
@@ -429,7 +439,7 @@ static i8 _parser_statement(void)
 	return 0;
 }
 
-static void _popv(i16 i)
+static void _popv(u8 i)
 {
 	if(i < _parser.NumGlobals)
 	{
@@ -443,7 +453,7 @@ static void _popv(i16 i)
 	}
 }
 
-static void _pushv(i16 i)
+static void _pushv(u8 i)
 {
 	if(i < _parser.NumGlobals)
 	{

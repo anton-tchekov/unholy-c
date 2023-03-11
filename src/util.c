@@ -1,37 +1,6 @@
 #define ARRLEN(a) (sizeof(a) / sizeof(*a))
 #define ABS(n) (((n) < 0) ? -(n) : (n))
 
-static u16 _read_16(u8 *p);
-static void _write_16(u8 *b, u16 v);
-
-static u32 _read_32(u8 *p);
-static void _write_32(u8 *b, u32 v);
-
-static u16 _read_16(u8 *p)
-{
-	return ((u16)p[0]) | (((u16)p[1]) << 8);
-}
-
-static void _write_16(u8 *b, u16 v)
-{
-	b[0] = v & 0xFF;
-	b[1] = v >> 8;
-}
-
-static u32 _read_32(u8 *p)
-{
-	return ((u32)p[0]) | (((u32)p[1]) << 8) |
-		(((u32)p[2]) << 16) | (((u32)p[3]) << 24);
-}
-
-static void _write_32(u8 *b, u32 v)
-{
-	b[0] = v & 0xFF;
-	b[1] = ((v >> 8) & 0xFF);
-	b[2] = ((v >> 16) & 0xFF);
-	b[3] = v >> 24;
-}
-
 static i8 _string_find(const char *str, const char *name)
 {
 	u8 found;
@@ -66,6 +35,8 @@ static i8 _string_find(const char *str, const char *name)
 	return -1;
 }
 
+#ifdef ENABLE_FLOAT
+
 /* memcpy needed because of strict aliasing rules */
 static u32 fbti(f32 p)
 {
@@ -80,3 +51,5 @@ static f32 ibtf(u32 p)
 	memcpy(&f, &p, 4);
 	return f;
 }
+
+#endif

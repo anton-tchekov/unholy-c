@@ -3,7 +3,13 @@ CFLAGS=\
 	-Werror=uninitialized \
 	-Werror=return-type \
 	-Werror=implicit-function-declaration \
-	-Wall -Wextra -pedantic -std=c99 -O2 -g -DDEBUG -DPLATFORM=PLATFORM_LINUX
+	-Wall -Wextra -pedantic -std=c99 -O2 -g \
+	-DDEBUG \
+	-DPLATFORM=PLATFORM_LINUX \
+	-DENABLE_FLOAT \
+	-DENABLE_RANDOM \
+	-DENABLE_CHAR \
+	-DENABLE_FILE
 
 LDFLAGS=-lm
 MAIN=src/main.c
@@ -27,6 +33,7 @@ all: $(SRC)
 .PHONY: avr
 avr:
 	make -f avr.mk
+	avr-nm --size-sort -t d -S main.elf
 
 .PHONY: clean
 clean:

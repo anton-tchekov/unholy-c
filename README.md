@@ -1,8 +1,5 @@
 # Usage
 
-WARNING: The current version is very much a work in progress
-and probably won't even compile.
-
 **Clone repo:**
 
     git clone https://github.com/anton-tchekov/unholy-c.git
@@ -50,13 +47,14 @@ Additionally, the first character can not be a number.
         var count;
     }
 
-Global variables must be defined at the beginning of the file, before all
-functions.
+Global variables and constants must be defined at the beginning of the file,
+before all functions.
 
 **Example:**
 
-    var ANSWER = 42;
-    var PI = 3.1416;
+    var _counter;
+    const ANSWER = 42;
+    const PI = 3.1416;
 
 ## Types
 
@@ -475,53 +473,23 @@ two stacks and the parameter copying when calling a function.
 
 ## TODO
 
+### Priority
+
+- file i/o (SD-Card)
+- memory functions (memcpy, memchr, etc.)
+
 ### Features
 
-**PRIORITY:**
-
-- better and more helpful error messages
-
-**LATER:**
-
 - function pointers
-- switch-case
+- finish switch-case
 - constants
 
 ### Builtin Functions
-
-**PRIORITY:**
-
-- file and terminal i/o
-- memory functions (memcpy, memchr, etc.)
-- string functions (strcpy, strchr, etc.)
-
-**LATER:**
 
 - data structure / algorithm standard library
 	- prerequisite: function pointers
 	- sorting, hashing, etc.
 
-### Documentation / Utility
-
-**PRIORITY:**
-
-- proofread, update docs to reflect changes
-
-**LATER:**
-
-- more code examples
-
-### Platform
-
-**PRIORITY:**
-
-- SD-Card
-
-**LATER:**
-
-- Test and compare execution speed
-
 ### Known Bugs
 
 ### Untested
-- Test on microcontroller
