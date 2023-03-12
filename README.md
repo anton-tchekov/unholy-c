@@ -520,9 +520,10 @@ two stacks and the parameter copying when calling a function.
 
 ### Priority
 
-- error handling (Optimize undefined reference)
-- timing
+- AVR: timing ISR
 - file and terminal i/o
+	fgetc, fgets, directory functions, fcopy, fmove, fdel,
+	SD-Card
 
 ### Features
 

@@ -80,8 +80,6 @@ static i16 identifier_map_insert(IdentifierMap *map, u16 offset, char *key)
 		} \
 	} while(0)
 
-#define OFFSET_CALL_MAIN 4
-
 /* --- PARSER --- */
 typedef struct PARSER
 {
@@ -114,7 +112,6 @@ static i8 _parser_fn(void);
 static i8 _parser_var(void);
 static void _parser_call_main(void);
 static i8 _parser_check_impl(void);
-static i8 _parser_main(void);
 
 /* --- FUNCTIONS --- */
 static u8 _fn_params_get(u16 idx)
@@ -212,9 +209,11 @@ static i8 parser_compile(void)
 	}
 
 	_parser.NumGlobals = _parser.Variables.Count;
-
-	_emit8(INSTR_DSP);
-	_emit8(_parser.NumGlobals);
+	if(_parser.NumGlobals)
+	{
+		_emit8(INSTR_DSP);
+		_emit8(_parser.NumGlobals);
+	}
 
 	_parser_call_main();
 
@@ -226,15 +225,25 @@ static i8 parser_compile(void)
 	}
 
 	RETURN_IF(_parser_check_impl());
-	RETURN_IF(_parser_main());
 	return 0;
 }
 
+#define STR_MAIN_ADDR 0xFFF8
+
 static void _parser_call_main(void)
 {
+	static char _main_str[] = "main";
+	i16 i;
+
+	xmem_write(BANK_INPUT, STR_MAIN_ADDR, _main_str, sizeof(_main_str));
+	i = _identifier_map_insert(&_parser.Functions, STR_MAIN_ADDR);
+	_fn_addr_set(i, 0);
+	_fn_params_set(i, 0);
+
 	_emit8(INSTR_CALL);
 	_emit8(0);
-	_skip(2);
+	_fn_usage_add();
+	_emit16(i);
 	_emit8(INSTR_HALT);
 }
 
@@ -242,23 +251,6 @@ static const char _undefined_reference_str[] PROGMEM =
 	"Undefined reference to `";
 
 static const char _undefined_reference_end_str[] = "`\n";
-static char _main_str[] = "main";
-
-static i8 _parser_main(void)
-{
-	i16 i;
-	if((i = identifier_map_find(&_parser.Functions, _main_str)) < 0)
-	{
-		stream_fputs_P(0, _undefined_reference_str);
-		stream_fputs(0, _main_str);
-		stream_fputs(0, _undefined_reference_end_str);
-		TRACE(ERROR_FN_UNDEFINED);
-	}
-
-	memory_w16(BANK_INTERPRETER,
-		OFFSET_CODE + OFFSET_CALL_MAIN, _fn_addr_get(i));
-	return 0;
-}
 
 static i8 _parser_check_impl(void)
 {
