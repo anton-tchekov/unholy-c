@@ -1,0 +1,35 @@
+fn main()
+{
+	fputs(0, "Hello World");
+	fputc(0, '\n');
+
+	fputse(0, "Hello World", 5);
+	fputc(0, '\n');
+
+	fputd(0, 42);
+	fputc(0, '\n');
+
+	fputd(0, -32);
+	fputc(0, '\n');
+
+	fputde(0, 123, 10);
+	fputc(0, '\n');
+
+	fputx(0, 0xFFAA);
+	fputc(0, '\n');
+
+	fputxe(0, 0xFFAA, 8);
+	fputc(0, '\n');
+
+	fputf(0, 3.14159);
+	fputc(0, '\n');
+
+	fputf(0, -10.77);
+	fputc(0, '\n');
+
+	fputf(0, 0.0);
+	fputc(0, '\n');
+
+	fputfe(0, 3.1415926, 4, 5);
+	fputc(0, '\n');
+}

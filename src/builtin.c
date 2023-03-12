@@ -465,7 +465,7 @@ static u32 _fputxe(u32 *p)
 
 static u32 _fputf(u32 *p)
 {
-	stream_fputf(p[0], ibtf(p[0]));
+	stream_fputf(p[0], ibtf(p[1]));
 	return 0;
 }
 
@@ -492,7 +492,6 @@ static u32 _file_open(u32 *p)
 	xmem_read(BANK_INTERPRETER, p[0], name_buf, sizeof(name_buf));
 	xmem_read(BANK_INTERPRETER, p[1], mode_buf, sizeof(mode_buf));
 	return fs_fopen(name_buf, mode_buf);
-	return 0;
 }
 
 static u32 _file_read(u32 *p)

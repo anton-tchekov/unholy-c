@@ -67,7 +67,7 @@ static void _print_radix(u8 stream, i32 value, u8 radix, u8 width)
 	{
 		i = v % radix;
 		v /= radix;
-		*p++ = (i < 10) ? i + '0' : i + 'a' - 10;
+		*p++ = (i < 10) ? i + '0' : i + 'A' - 10;
 	}
 
 	if(sign)
@@ -76,7 +76,7 @@ static void _print_radix(u8 stream, i32 value, u8 radix, u8 width)
 	}
 
 	len = p - buf;
-	pad = (radix == 10) ? ' ' : ';';
+	pad = (radix == 10) ? ' ' : '0';
 	while(len < width)
 	{
 		*p++ = pad;
@@ -116,11 +116,11 @@ static void stream_fputxe(u8 stream, u32 value, u8 width)
 static void stream_fputfe(u8 stream, f32 value, u8 width, u8 decimal)
 {
 	char c;
-	u32 int_part;
+	i32 int_part;
 
 	int_part = value;
+	value = fabs(value - int_part);
 	_print_radix(stream, int_part, 10, width);
-	value -= int_part;
 	if(decimal)
 	{
 		stream_fputc(stream, '.');

@@ -285,7 +285,7 @@ static i8 _tokenizer_float(i32 n)
 	}
 
 	f = 0;
-	d = 10;
+	d = n > 0 ? 1 : -1;
 	while(isdigit(c))
 	{
 		f = 10 * f + (c - '0');
@@ -293,7 +293,7 @@ static i8 _tokenizer_float(i32 n)
 		c = _tokenizer_advance();
 	}
 
-	_token.Number = fbti((f32)n + (f32)f / (f32)d);
+	_token.Number = fbti(n + (f32)f / (f32)d);
 	return 0;
 }
 #endif
@@ -326,6 +326,11 @@ static i8 _tokenizer_decimal(i8 b)
 		c = _tokenizer_advance();
 	}
 
+	if(is_neg)
+	{
+		n = -n;
+	}
+
 #ifdef ENABLE_FLOAT
 	if(c == '.')
 	{
@@ -333,7 +338,7 @@ static i8 _tokenizer_decimal(i8 b)
 	}
 #endif
 
-	_token.Number = is_neg ? -n : n;
+	_token.Number = n;
 	return 0;
 }
 
