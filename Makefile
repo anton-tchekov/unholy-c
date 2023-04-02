@@ -10,7 +10,7 @@ CFLAGS=\
 	-DENABLE_RANDOM \
 	-DENABLE_CHAR \
 	-DENABLE_FILE \
-
+	-lSDL2
 
 LDFLAGS=-lm
 MAIN=src/main.c

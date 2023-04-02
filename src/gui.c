@@ -1,5 +1,4 @@
-#include "lib.h"
-#include "proportional.c"
+#include "gui.h"
 #include <SDL2/SDL.h>
 
 #define WINDOW_TITLE             "OS GUI Simulator"
@@ -9,14 +8,14 @@ static u32 _pixels[WINDOW_HEIGHT * WINDOW_WIDTH];
 static int _ctor(SDL_Window **window, SDL_Renderer **renderer);
 static void _dtor(SDL_Window *window, SDL_Renderer *renderer);
 
-void os_init(void)
-{
 	SDL_Texture *framebuffer;
 	SDL_Window *window = NULL;
 	SDL_Renderer *renderer = NULL;
 	int running = 1;
 	SDL_Event event;
 
+void os_init(void)
+{
 	if(_ctor(&window, &renderer))
 	{
 		return;
@@ -27,38 +26,6 @@ void os_init(void)
 		SDL_TEXTUREACCESS_STREAMING,
 		WINDOW_WIDTH, WINDOW_HEIGHT);
 
-	while(running)
-	{
-		SDL_WaitEvent(&event);
-		switch(event.type)
-		{
-			case SDL_KEYDOWN:
-				if(event.key.keysym.sym == SDLK_ESCAPE)
-				{
-					running = 0;
-					break;
-				}
-
-				os_event_key(event.key.keysym.sym, 0);
-				break;
-
-			case SDL_KEYUP:
-				os_event_key(event.key.keysym.sym, 1);
-				break;
-
-			case SDL_QUIT:
-				running = 0;
-				break;
-		}
-
-		os_update();
-		SDL_UpdateTexture(framebuffer, NULL, _pixels, WINDOW_WIDTH * sizeof(u32));
-		SDL_RenderClear(renderer);
-		SDL_RenderCopy(renderer, framebuffer, NULL, NULL);
-		SDL_RenderPresent(renderer);
-	}
-
-	_dtor(window, renderer);
 }
 
 Color render_color(u8 r, u8 g, u8 b)

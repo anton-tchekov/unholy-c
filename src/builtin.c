@@ -542,6 +542,21 @@ static u32 _millis(u32 *p)
 	(void)p;
 }
 
+static u32 _rect(u32 *p)
+{
+	render_rect(p[0], p[1], p[2], p[3], p[4]);
+	SDL_UpdateTexture(framebuffer, NULL, _pixels, WINDOW_WIDTH * sizeof(u32));
+		SDL_RenderClear(renderer);
+		SDL_RenderCopy(renderer, framebuffer, NULL, NULL);
+		SDL_RenderPresent(renderer);
+	return 0;
+}
+
+static u32 _color(u32 *p)
+{
+	return render_color(p[0], p[1], p[2]);
+}
+
 static const i8 _num_parameters[] PROGMEM =
 {
 	/* INT */
@@ -672,6 +687,9 @@ static const i8 _num_parameters[] PROGMEM =
 #endif
 
 	0, /* millis */
+
+	5, /* rect  */
+	3, /* color */
 };
 
 typedef u32 (*const builtin_ptr)(u32 *);
@@ -806,6 +824,9 @@ static builtin_ptr _builtins[] PROGMEM =
 #endif
 
 	_millis,
+
+	_rect,
+	_color
 };
 
 static const char _identifiers[] PROGMEM =
@@ -938,6 +959,9 @@ static const char _identifiers[] PROGMEM =
 #endif
 
 	"millis\0"
+
+	"rect\0"
+	"color\0"
 
 	"|";
 

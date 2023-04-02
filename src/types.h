@@ -1,7 +1,9 @@
 #ifndef __TYPES_H__
 #define __TYPES_H__
 
+#include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 /* Memory banks */
 #define BANK_INPUT             0
@@ -26,22 +28,35 @@
 #define OFFSET_RODATA          0x4000
 #define OFFSET_DATA            0x8000
 
-/* Types */
+/** Signed 64-bit integer */
+typedef int64_t i64;
+
+/** Signed 32-bit integer */
 typedef int32_t i32;
+
+/** Signed 16-bit integer */
 typedef int16_t i16;
+
+/** Signed 8-bit integer */
 typedef int8_t i8;
 
+/** Unsigned 64-bit integer */
+typedef uint64_t u64;
+
+/** Unsigned 32-bit integer */
 typedef uint32_t u32;
+
+/** Unsigned 16-bit integer */
 typedef uint16_t u16;
+
+/** Unsigned 8-bit integer */
 typedef uint8_t u8;
 
+/** 32-bit float */
 typedef float f32;
+
+/** 64-bit float */
 typedef double f64;
-
-typedef u8 bool;
-
-#define true  1
-#define false 0
 
 /* Platform */
 #define PLATFORM_LINUX         0

@@ -5,6 +5,7 @@
 
 #include "types.h"
 
+#include "gui.c"
 #include "spi.c"
 #include "util.c"
 #include "instr.c"
@@ -48,6 +49,7 @@ int main(void)
 	uart_init();
 	xmem_init();
 	fs_init();
+	os_init();
 
 #if PLATFORM == PLATFORM_LINUX
 	if(argc != 2)
@@ -138,6 +140,7 @@ int main(void)
 	{
 	}
 #endif
+
 
 	return 0;
 }
