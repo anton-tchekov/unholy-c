@@ -63,7 +63,7 @@ static i16 identifier_map_insert(IdentifierMap *map, u16 offset, char *key)
 {
 	if(identifier_map_find(map, key) >= 0)
 	{
-		TRACE(ERROR_DUP_MAP_ELEM);
+		return -1;
 	}
 
 	return _identifier_map_insert(map, offset);
@@ -109,7 +109,7 @@ static StatusCode _parser_action(void);
 static StatusCode _parser_fn_call(void);
 static StatusCode _parser_expression(void);
 static StatusCode _parser_fn(void);
-static StatusCode _parser_let(void);
+static StatusCode _parser_let(u8 *count);
 static void _parser_call_main(void);
 static StatusCode _parser_check_impl(void);
 
@@ -204,7 +204,8 @@ static i8 parser_compile(void)
 	RETURN_IF(tokenizer_next());
 	while(_token.Type == TT_LET)
 	{
-		RETURN_IF(_parser_let());
+		u8 ignore;
+		RETURN_IF(_parser_let(&ignore));
 		RETURN_IF(tokenizer_next());
 	}
 
@@ -225,7 +226,7 @@ static i8 parser_compile(void)
 	}
 
 	RETURN_IF(_parser_check_impl());
-	return 0;
+	return SUCCESS;
 }
 
 #define STR_MAIN_ADDR 0xFFF8
@@ -282,7 +283,7 @@ static StatusCode _parser_check_impl(void)
 		TRACE(ERROR_FN_UNDEFINED);
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_fn(void)
@@ -321,7 +322,11 @@ static StatusCode _parser_fn(void)
 	while(_token.Type != ')')
 	{
 		EXPECT(TT_LET_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
-		RETURN_IF(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier));
+		if(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier) < 0)
+		{
+			TRACE(ERROR_VAR_REDEFINITION);
+		}
+
 		++parameters;
 		RETURN_IF(tokenizer_next());
 		if(_token.Type == ',')
@@ -369,7 +374,7 @@ static StatusCode _parser_fn(void)
 		_emit8(INSTR_RET);
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_statement(void)
@@ -439,7 +444,7 @@ static StatusCode _parser_statement(void)
 		TRACE(ERROR_UNEXPECTED_TOKEN);
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 static void _popv(u8 i)
@@ -488,7 +493,7 @@ static StatusCode _parser_assign(void)
 	RETURN_IF(_parser_expression());
 	_popv(i);
 	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_action(void)
@@ -502,7 +507,7 @@ static StatusCode _parser_action(void)
 	/* Ignored return value */
 	_emit8(INSTR_POP);
 	RETURN_IF(tokenizer_next());
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_fn_call(void)
@@ -589,25 +594,32 @@ static StatusCode _parser_fn_call(void)
 	}
 
 	_emit16(addr);
-	return 0;
+	return SUCCESS;
 }
 
-static StatusCode _parser_let(void)
+static StatusCode _parser_let(u8 *count)
 {
-	u8 count;
+	u8 i;
 
-	count = 0;
+	i = 0;
 	do
 	{
 		RETURN_IF(tokenizer_next());
 		EXPECT(TT_LET_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
-		RETURN_IF(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier));
-		++count;
+		if(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier) < 0)
+		{
+			TRACE(ERROR_VAR_REDEFINITION);
+		}
+
+		++i;
 		RETURN_IF(tokenizer_next());
 	}
 	while(_token.Type == ',');
 	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
-	return count;
+
+	*count = i;
+
+	return SUCCESS;
 }
 
 static StatusCode _parser_fn_block(u8 local_vars)
@@ -619,9 +631,9 @@ static StatusCode _parser_fn_block(u8 local_vars)
 	RETURN_IF(tokenizer_next());
 	while(_token.Type == TT_LET)
 	{
-		i8 rv;
-		RETURN_IF(rv = _parser_let());
-		local_vars += rv;
+		u8 count;
+		RETURN_IF(_parser_let(&count));
+		local_vars += count;
 		RETURN_IF(tokenizer_next());
 	}
 
@@ -633,7 +645,7 @@ static StatusCode _parser_fn_block(u8 local_vars)
 
 	RETURN_IF(_parser_block_inner());
 	_parser.Variables.Count -= local_vars;
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_block_inner(void)
@@ -644,7 +656,7 @@ static StatusCode _parser_block_inner(void)
 		RETURN_IF(tokenizer_next());
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_block(void)
@@ -656,7 +668,7 @@ static StatusCode _parser_block(void)
 	EXPECT('{', ERROR_EXPECTED_L_BRACE);
 	RETURN_IF(tokenizer_next());
 	RETURN_IF(_parser_block_inner());
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_expression(void)
@@ -691,7 +703,7 @@ static StatusCode _parser_expression(void)
 		TRACE(ERROR_UNEXPECTED_TOKEN);
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_if(void)
@@ -749,7 +761,7 @@ static StatusCode _parser_if(void)
 		memory_w16(BANK_INTERPRETER, OFFSET_CODE + idx_cond, _parser.Offset);
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_while(void)
@@ -792,7 +804,7 @@ static StatusCode _parser_while(void)
 	/* Handle break and continue statements */
 	address_stack_update(&_parser.BreakStack, prev_break, _parser.Offset);
 	address_stack_update(&_parser.ContinueStack, prev_continue, idx_before);
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_loop(void)
@@ -824,7 +836,7 @@ static StatusCode _parser_loop(void)
 	/* Handle break and continue statements */
 	address_stack_update(&_parser.BreakStack, prev_break, _parser.Offset);
 	address_stack_update(&_parser.ContinueStack, prev_continue, idx_before);
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_for(void)
@@ -908,7 +920,7 @@ static StatusCode _parser_for(void)
 	/* Handle break and continue statements */
 	address_stack_update(&_parser.BreakStack, prev_break, _parser.Offset);
 	address_stack_update(&_parser.ContinueStack, prev_continue, idx_before);
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_switch(void)
@@ -968,7 +980,7 @@ static StatusCode _parser_switch(void)
 
 	/* handle break */
 	address_stack_update(&_parser.BreakStack, prev_break, _parser.Offset);
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_do_while(void)
@@ -1008,7 +1020,7 @@ static StatusCode _parser_do_while(void)
 	/* Handle break and continue statements */
 	address_stack_update(&_parser.BreakStack, prev_break, _parser.Offset);
 	address_stack_update(&_parser.ContinueStack, prev_continue, idx_branch);
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_break(void)
@@ -1027,7 +1039,7 @@ static StatusCode _parser_break(void)
 	_emit8(INSTR_JMP);
 	address_stack_push(&_parser.BreakStack, _parser.Offset);
 	_skip(2);
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_continue(void)
@@ -1046,7 +1058,7 @@ static StatusCode _parser_continue(void)
 	_emit8(INSTR_JMP);
 	address_stack_push(&_parser.ContinueStack, _parser.Offset);
 	_skip(2);
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _parser_return(u8 instr)
@@ -1085,5 +1097,5 @@ static StatusCode _parser_return(u8 instr)
 	}
 
 	_emit8(instr);
-	return 0;
+	return SUCCESS;
 }
