@@ -407,6 +407,17 @@ static u32 _mset(u32 *p)
 	return 0;
 }
 
+static u32 _alloc(u32 *p)
+{
+	return 0;
+}
+
+static u32 _free(u32 *p)
+{
+	return 0;
+}
+
+
 #ifdef ENABLE_RANDOM
 
 /* RANDOM */
@@ -620,6 +631,10 @@ static const i8 _num_parameters[] PROGMEM =
 	1, /* ru8  */
 	1, /* rs16 */
 	1, /* rs8  */
+
+	1, /* alloc */
+	1, /* free */
+
 	3, /* mcpy */
 	3, /* mcmp */
 	3, /* mchr */
@@ -750,6 +765,10 @@ static builtin_ptr _builtins[] PROGMEM =
 	_ru8,
 	_rs16,
 	_rs8,
+
+	_alloc,
+	_free,
+
 	_mcpy,
 	_mcmp,
 	_mchr,
