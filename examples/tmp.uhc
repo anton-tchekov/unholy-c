@@ -1,0 +1,31 @@
+fn main() {
+    let array;
+    fputs(0, "[ \n");
+    fputs(0, "GHKJLkgjhsudl\n");
+    
+    array_print(array);
+    
+    /*
+    
+    array = array_new(5);
+    array_set(array, 0, 5);
+    array_set(array, 1, 10);
+    array_set(array, 2, 6);
+    array_set(array, 3, 18);
+    array_set(array, 4, 1);
+    
+    */
+}
+
+fn array_print(array){
+    let i;
+    
+
+    /* for i = 0 to sub(array_len(array), 1) {
+        fputd(0, array_get(array, i));
+        fputs(0, ", ");
+    }
+    
+    fputs(0, " ]"); */
+    return;
+}
