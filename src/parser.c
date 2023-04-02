@@ -193,7 +193,7 @@ static void _pushi(u32 value)
 }
 
 /* --- PARSER --- */
-static i8 parser_compile(void)
+static StatusCode parser_compile(void)
 {
 	_parser.Variables.Offset = OFFSET_VARIABLES;
 	_parser.Functions.Offset = OFFSET_FUNCTIONS;
