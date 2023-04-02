@@ -4,4 +4,5 @@ fn main()
 	a = 10.0;
 	b = 5.0;
 	c = sqrt(addf(mulf(a, a), mulf(b, b)));
+	fputf(0, c);
 }
