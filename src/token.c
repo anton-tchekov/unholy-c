@@ -3,7 +3,7 @@ enum TOKEN_TYPE
 	TT_NULL,
 	TT_NUMBER,
 	TT_FN_IDENTIFIER,
-	TT_VAR_IDENTIFIER,
+	TT_LET_IDENTIFIER,
 	TT_KEYWORD,
 	TT_IF = TT_KEYWORD,
 	TT_ELIF,
@@ -14,7 +14,7 @@ enum TOKEN_TYPE
 	TT_TO,
 	TT_INC,
 	TT_DEC,
-	TT_VAR,
+	TT_LET,
 	TT_FN,
 	TT_BREAK,
 	TT_CONTINUE,
@@ -23,7 +23,8 @@ enum TOKEN_TYPE
 	TT_TRUE,
 	TT_FALSE,
 	TT_CONST,
-	TT_SWITCH
+	TT_SWITCH,
+	TT_EXIT
 };
 
 static const char _keywords[] PROGMEM =
@@ -36,7 +37,7 @@ static const char _keywords[] PROGMEM =
 	"to\0"
 	"inc\0"
 	"dec\0"
-	"var\0"
+	"let\0"
 	"fn\0"
 	"break\0"
 	"continue\0"
@@ -45,7 +46,9 @@ static const char _keywords[] PROGMEM =
 	"true\0"
 	"false\0"
 	"const\0"
-	"switch\0|";
+	"switch\0"
+	"exit\0"
+	"|";
 
 static i8 _keyword_find(const char *name)
 {

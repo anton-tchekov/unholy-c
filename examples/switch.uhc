@@ -1,6 +1,6 @@
 fn main()
 {
-	var i;
+	let i;
 
 	i = 0;
 	while lt(i, 4) {

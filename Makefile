@@ -13,27 +13,24 @@ CFLAGS=\
 
 LDFLAGS=-lm
 MAIN=src/main.c
-SRC=src/builtin.c \
-	src/error.c \
-	src/instr.c \
-	src/interpreter.c \
-	src/memory.c \
-	src/parser.c \
-	src/stream.c \
-	src/token.c \
-	src/tokenizer.c \
-	src/util.c \
-	$(MAIN)
 
 TARGET=nanoc
 
-all: $(SRC)
+all: $(MAIN)
 	$(CC) -o $(TARGET) $(MAIN) $(CFLAGS) $(LDFLAGS)
 
 .PHONY: avr
 avr:
 	make -f avr.mk
 	avr-nm --size-sort -t d -S main.elf
+
+.PHONY: check
+check:
+	avrdude -pm328p -carduino -P/dev/ttyUSB2 -b57600
+
+.PHONY: upload
+upload:
+	avrdude -pm328p -carduino -P/dev/ttyUSB2 -b57600 -U main.elf
 
 .PHONY: clean
 clean:

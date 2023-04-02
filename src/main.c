@@ -5,15 +5,16 @@
 
 #include "types.h"
 
+#include "spi.c"
 #include "util.c"
 #include "instr.c"
 #include "error.c"
+#include "uart.c"
 #include "xmem.c"
 #include "memory.c"
-#include "uart.c"
 #include "fs.c"
-#include "timer.c"
 #include "stream.c"
+#include "timer.c"
 #include "builtin.c"
 #include "token.c"
 #include "tokenizer.c"
@@ -22,6 +23,15 @@
 
 static const char _usage_str[] PROGMEM = "Usage: ./nanoc [file]\n";
 static const char _fail_open_str[] PROGMEM = "Failed to open file ";
+static const char _memory_test_failed[] PROGMEM = "Memory Test FAILED\n";
+static const char _memory_test_passed[] PROGMEM = "Memory Test PASSED\n";
+
+static void panic(void)
+{
+	for(;;)
+	{
+	}
+}
 
 #if PLATFORM == PLATFORM_LINUX
 int main(int argc, char **argv)
@@ -51,7 +61,17 @@ int main(void)
 	/* Load specific file from SD-Card for now */
 	/* TODO: Shell, Editor */
 	filename = "life.uhc";
+	sei();
+
+	if(xram_memtest())
+	{
+		stream_fputs_P(0, _memory_test_failed);
+		panic();
+	}
+
+	stream_fputs_P(0, _memory_test_passed);
 #endif
+
 
 	if(!(file = fs_fopen(filename, "r")))
 	{
@@ -61,7 +81,9 @@ int main(void)
 		return 1;
 	}
 
-	memory_w8(BANK_INPUT, fs_fread(file, BANK_INPUT, 0, 0x8000), '\0');
+	memory_w8(BANK_INPUT,
+		fs_fread(file, BANK_INPUT, OFFSET_INPUT, 0x8000), '\0');
+
 	fs_fclose(file);
 
 	tokenizer_init();

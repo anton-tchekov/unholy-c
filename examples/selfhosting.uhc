@@ -1,3 +1,519 @@
+let _tokenizer_current,
+	_tokenizer_input_offset,
+	_tokenizer_line_begin,
+	_tokenizer_data_offset,
+	_tokenizer_row,
+	_tokenizer_col;
+
+let _token_row,
+	_token_col,
+	_token_type,
+	_token_number,
+	_token_identifier;
+
+/*
+u8 NumGlobals, BreakNesting, ContinueNesting;
+u16 UsagesCount, Offset;
+AddressStack BreakStack, ContinueStack;
+IdentifierMap Variables, Functions, Constants;
+*/
+
+let _keywords;
+
+let TT_NULL,
+	TT_NUMBER,
+	TT_FN_IDENTIFIER,
+	TT_LET_IDENTIFIER,
+	TT_KEYWORD,
+	TT_IF,
+	TT_ELIF,
+	TT_ELSE,
+	TT_DO,
+	TT_WHILE,
+	TT_FOR,
+	TT_TO,
+	TT_INC,
+	TT_DEC,
+	TT_LET,
+	TT_FN,
+	TT_BREAK,
+	TT_CONTINUE,
+	TT_RETURN,
+	TT_LOOP,
+	TT_TRUE,
+	TT_FALSE,
+	TT_CONST,
+	TT_SWITCH;
+
+let OFFSET_RODATA;
+
+let ERROR_UNEXPECTED_CHARACTER,
+	ERROR_INV_ESCAPE_SEQUENCE,
+	ERROR_EXPECTED_DIGIT;
+
+fn _ascii_hex(c)
+{
+	let bias;
+	bias = 0;
+	if ge(c, 'A') { bias = 9; }
+	return add(and(c, 15), bias);
+}
+
+fn _is_hex(c)
+{
+	if isdigit(c) { return 1; }
+	if ge(c, 'A') { if le(c, 'F') { return 1; } }
+	return 0;
+}
+
+fn _is_bin(c)
+{
+	if eq(c, '0') { return 1; }
+	if eq(c, '1') { return 1; }
+	return 0;
+}
+
+fn is_identifier_char(c)
+{
+	if isalnum(c) { return 1; }
+	if eq(c, '_') { return 1; }
+	return 0;
+}
+
+fn _tokenizer_read()
+{
+	_tokenizer_current = ru8(_tokenizer_input_offset);
+	if eq(_tokenizer_current, '\n') {
+		_tokenizer_row = add(_tokenizer_row, 1);
+		_tokenizer_col = -1;
+		_tokenizer_line_begin = add(_tokenizer_input_offset, 1);
+	}
+}
+
+fn _tokenizer_lookahead()
+{
+	return ru8(add(_tokenizer_input_offset, 1));
+}
+
+fn _tokenizer_advance()
+{
+	if eq(_tokenizer_current, '\0') {
+		return '\0';
+	}
+
+	_tokenizer_input_offset = add(_tokenizer_input_offset, 1);
+	_tokenizer_col = add(_tokenizer_col, 1);
+	_tokenizer_read();
+	return _tokenizer_current;
+}
+
+fn _tokenizer_current()
+{
+	return _tokenizer_current;
+}
+
+fn tokenizer_init()
+{
+	_tokenizer_data_offset = 0;
+	_tokenizer_line_begin = 0;
+	_tokenizer_input_offset  = 0;
+	_tokenizer_col  = 0;
+	_tokenizer_row = 1;
+	_tokenizer_read();
+}
+
+fn _tokenizer_char()
+{
+	let b, c, ret;
+	c = _tokenizer_current();
+	if eq(c, '\\')
+	{
+		c = _tokenizer_advance();
+		/*if   eq(c, '\'') { ret = '\''; }
+		el*/if eq(c, '\\') { ret = '\\'; }
+		elif eq(c, '\"') { ret = '\"'; }
+		elif eq(c, '0')  { ret = '\0'; }
+		elif eq(c, 'a')  { ret = '\a'; }
+		elif eq(c, 'b')  { ret = '\b'; }
+		elif eq(c, 'e')  { ret = 0x1B; }
+		elif eq(c, 'f')  { ret = '\f'; }
+		elif eq(c, 'n')  { ret = '\n'; }
+		elif eq(c, 'r')  { ret = '\r'; }
+		elif eq(c, 't')  { ret = '\t'; }
+		elif eq(c, 'v')  { ret = '\v'; }
+		elif eq(c, 'x') {
+			b = _tokenizer_advance();
+			if not(_is_hex(b)) {
+				error(ERROR_UNEXPECTED_CHARACTER);
+			}
+
+			c = _tokenizer_advance();
+			if not(_is_hex(c)) {
+				error(ERROR_UNEXPECTED_CHARACTER);
+			}
+
+			ret = add(shl(_ascii_hex(b), 4), _ascii_hex(c));
+		}
+		else {
+			error(ERROR_INV_ESCAPE_SEQUENCE);
+		}
+	}
+	elif isprint(c)
+	{
+		ret = c;
+	}
+	else
+	{
+		error(ERROR_UNEXPECTED_CHARACTER);
+	}
+
+	return ret;
+}
+
+fn _tokenizer_comment()
+{
+	let c;
+
+	_tokenizer_advance();
+	c = _tokenizer_advance();
+	while c
+	{
+		c = _tokenizer_advance();
+		if ne(c, '*') {
+			continue;
+		}
+
+		c = _tokenizer_advance();
+		if eq(c, '/') {
+			break;
+		}
+	}
+
+	_tokenizer_advance();
+}
+
+fn _tokenizer_space()
+{
+	while isspace(_tokenizer_advance()) {}
+}
+
+fn _is_comment_start(c, d)
+{
+	if eq(c, '/') { if eq(d, '*') { return 1; } }
+	return 0;
+}
+
+fn _tokenizer_skip()
+{
+	let c;
+	loop {
+		c = _tokenizer_current();
+		if _is_comment_start(c, _tokenizer_lookahead()) {
+			_tokenizer_comment();
+		}
+		elif isspace(c) {
+			_tokenizer_space();
+		}
+		else {
+			break;
+		}
+	}
+}
+
+fn _tokenizer_identifier()
+{
+	let keyword, c;
+
+	_token_number = _tokenizer_input_offset;
+	c = _tokenizer_current();
+	while is_identifier_char(c)
+	{
+		c = _tokenizer_advance();
+	}
+
+	keyword = _keyword_find(_token_number);
+	if ge(keyword, 0) {
+		if eq(keyword, TT_TRUE) {
+			_token_type = TT_NUMBER;
+			_token_number = 1;
+			return;
+		}
+		elif eq(keyword, TT_FALSE) {
+			_token_type = TT_NUMBER;
+			_token_number = 0;
+			return;
+		}
+		else
+		{
+			_token_type = keyword;
+			return;
+		}
+	}
+
+	_tokenizer_skip();
+	if eq(_tokenizer_current(), '(') {
+		_token_type = TT_FN_IDENTIFIER;
+	} else {
+		_token_type = TT_LET_IDENTIFIER;
+	}
+}
+
+fn _tokenizer_hexadecimal()
+{
+	let c, n;
+	n = 0;
+	c = _tokenizer_advance();
+	while _is_hex(c) {
+		n = add(shl(n, 4), _ascii_hex(c));
+		c = _tokenizer_advance();
+	}
+
+	_token_number = n;
+}
+
+fn _tokenizer_binary()
+{
+	let c, n;
+	n = 0;
+	c = _tokenizer_advance();
+	while _is_bin(c) {
+		n = add(shl(n, 1), sub(c, '0'));
+		c = _tokenizer_advance();
+	}
+
+	_token_number = n;
+}
+
+fn _tokenizer_float(n)
+{
+	let c, f, d;
+	c = _tokenizer_advance();
+	if not(isdigit(c))
+	{
+		error(ERROR_EXPECTED_DIGIT);
+	}
+
+	f = 0;
+	if gt(d, 0) { d = 1; } else { d = -1; }
+	while isdigit(c)
+	{
+		f = add(mul(f, 10), sub(c, '0'));
+		d = mul(d, 10);
+		c = _tokenizer_advance();
+	}
+
+	_token_number = add(itf(n), divf(itf(f), itf(d)));
+	return 0;
+}
+
+fn _tokenizer_decimal(b)
+{
+	let n, c, is_neg;
+	c = _tokenizer_current();
+	if eq(b, '-')
+	{
+		is_neg = 1;
+		n = 0;
+		if not(isdigit(c))
+		{
+			error(ERROR_EXPECTED_DIGIT);
+		}
+	}
+	else
+	{
+		is_neg = 0;
+		n = sub(b, '0');
+	}
+
+	while isdigit(c)
+	{
+		n = add(mul(n, 10), sub(c, '0'));
+		c = _tokenizer_advance();
+	}
+
+	if is_neg
+	{
+		n = sub(0, n);
+	}
+
+	if eq(c, '.')
+	{
+		return _tokenizer_float(n);
+	}
+
+	_token_number = n;
+	return 0;
+}
+
+fn _tokenizer_number()
+{
+	let c, b;
+	_token_type = TT_NUMBER;
+	b = _tokenizer_current();
+	c = _tokenizer_advance();
+	if eq(c, 'x')
+	{
+		_tokenizer_hexadecimal();
+	}
+	elif eq(c, 'b')
+	{
+		_tokenizer_binary();
+	}
+	else
+	{
+		return _tokenizer_decimal(b);
+	}
+
+	return 0;
+}
+
+fn _tokenizer_char_literal()
+{
+	let v, c;
+	_tokenizer_advance();
+	v = _tokenizer_char();
+	/*if eq(v, '\'')
+	{
+		error(ERROR_UNEXPECTED_CHARACTER);
+	}*/
+
+	c = _tokenizer_advance();
+	/*if ne(c, '\'')
+	{
+		error(ERROR_UNTERMINATED_CHAR_LITERAL);
+	}*/
+
+	_tokenizer_advance();
+	_token_type = TT_NUMBER;
+	_token_number = v;
+	return 0;
+}
+
+fn _emit_data(c)
+{
+	w8(add(OFFSET_RODATA, _tokenizer_data_offset), c);
+	_tokenizer_data_offset = add(_tokenizer_data_offset, 1);
+}
+
+fn _tokenizer_string_literal()
+{
+	let v, offset;
+	offset = _tokenizer_data_offset;
+	do {
+		while ne(_tokenizer_advance(), '\"')
+		{
+			_emit_data(_tokenizer_char());
+		}
+
+		_tokenizer_advance();
+		_tokenizer_skip();
+	}
+	while eq(_tokenizer_current(), '\"');
+	_emit_data('\0');
+	_token_type = TT_NUMBER;
+	_token_number = offset;
+	return 0;
+}
+
+fn _is_number_start_char(c)
+{
+	if eq(c, '-') { return 1; }
+	if isdigit(c) { return 1; }
+	return 0;
+}
+
+fn _is_identifier_start_char(c)
+{
+	if eq(c, '_') { return 1; }
+	if isalpha(c) { return 1; }
+	return 0;
+}
+
+fn tokenizer_next()
+{
+	let c;
+	_tokenizer_skip();
+	c = _tokenizer_current();
+	_token_row = _tokenizer_row;
+	_token_col = _tokenizer_col;
+	if eq(c, '\0')
+	{
+		_token_type = TT_NULL;
+	}
+	/*elif eq(c, '\'')
+	{
+		_tokenizer_char_literal();
+	}*/
+	elif eq(c, '\"')
+	{
+		_tokenizer_string_literal();
+	}
+	elif _is_identifier_start_char(c)
+	{
+		_tokenizer_identifier();
+	}
+	elif _is_number_start_char(c)
+	{
+		_tokenizer_number();
+	}
+	else
+	{
+		_token_type = c;
+		_tokenizer_advance();
+	}
+}
+
+fn _string_find(str, name)
+{
+	let found, id, c, d, s, p;
+
+	id = 0;
+	found = 1;
+	s = str;
+	p = name;
+	c = r8(s);
+	while ne(c, '|') {
+		c = r8(s); s = add(s, 1);
+		d = r8(p); p = add(p, 1);
+		if eq(c, '\0') {
+			if eq(found, 1) { if not(d) {
+				return id;
+			}}
+
+			found = 1;
+			id = add(id, 1);
+			p = name;
+		}
+		elif not(d) {
+			found = 0;
+		}
+		elif ne(d, c) {
+			found = 0;
+		}
+	}
+
+	return -1;
+}
+
+fn _keyword_find(name)
+{
+	let ret;
+	ret = _string_find(_keywords, name);
+	if lt(ret, 0) {
+		return ret;
+	}
+
+	return add(TT_KEYWORD, ret);
+}
+
+
+
+
+
+
+
+
+
 /* --- ADDRESS STACK ---*/
 /* for `break;` and `continue;` statements */
 typedef struct ADDRESS_STACK
@@ -6,7 +522,7 @@ typedef struct ADDRESS_STACK
 	u16 Offset;
 } AddressStack;
 
-static void address_stack_update(AddressStack *as, u8 prev, u16 addr)
+fn address_stack_update(AddressStack *as, prev, addr)
 {
 	while(as->Top > prev)
 	{
@@ -16,7 +532,7 @@ static void address_stack_update(AddressStack *as, u8 prev, u16 addr)
 	}
 }
 
-static void address_stack_push(AddressStack *as, u16 addr)
+fn address_stack_push(AddressStack *as, addr)
 {
 	memory_w16(BANK_PARSER, as->Offset + 2 * as->Top, addr);
 	++as->Top;
@@ -29,10 +545,9 @@ typedef struct IDENTIFIER_MAP
 	u16 Count, Offset;
 } IdentifierMap;
 
-static i16 identifier_map_find(IdentifierMap *map, char *key)
+fn identifier_map_find(IdentifierMap *map, *key)
 {
-	u16 i, offset;
-	char c, r, *p;
+	let i, offset, c, r, *p;
 	for(i = 0; i < map->Count; ++i)
 	{
 		p = key;
@@ -53,127 +568,83 @@ static i16 identifier_map_find(IdentifierMap *map, char *key)
 	return -1;
 }
 
-static i16 _identifier_map_insert(IdentifierMap *map, u16 offset)
+fn _identifier_map_insert(IdentifierMap *map, offset)
 {
 	memory_w16(BANK_PARSER, map->Offset + 2 * map->Count, offset);
 	return map->Count++;
 }
 
-static i16 identifier_map_insert(IdentifierMap *map, u16 offset, char *key)
+fn identifier_map_insert(IdentifierMap *map, offset, key)
 {
 	if(identifier_map_find(map, key) >= 0)
 	{
-		TRACE(ERROR_DUP_MAP_ELEM);
+		error(ERROR_DUP_MAP_ELEM);
 	}
 
 	return _identifier_map_insert(map, offset);
 }
 
-/* --- EXPECT --- */
-/* consume expected token or return error */
-#define EXPECT(TYPE, ERROR) \
-	do \
-	{ \
-		if(_token.Type != TYPE) \
-		{ \
-			TRACE(ERROR); \
-		} \
-	} while(0)
-
-/* --- PARSER --- */
-typedef struct PARSER
-{
-	u8 NumGlobals, BreakNesting, ContinueNesting;
-	u16 UsagesCount, Offset;
-	AddressStack BreakStack, ContinueStack;
-	IdentifierMap Variables, Functions, Constants;
-} Parser;
-
-static Parser _parser;
-
-static StatusCode _parser_statement(void);
-static StatusCode _parser_fn_block(u8 local_vars);
-static StatusCode _parser_block_inner(void);
-static StatusCode _parser_block(void);
-static StatusCode _parser_if(void);
-static StatusCode _parser_while(void);
-static StatusCode _parser_do_while(void);
-static StatusCode _parser_for(void);
-static StatusCode _parser_switch(void);
-static StatusCode _parser_loop(void);
-static StatusCode _parser_break(void);
-static StatusCode _parser_continue(void);
-static StatusCode _parser_return(u8 instr);
-static StatusCode _parser_assign(void);
-static StatusCode _parser_action(void);
-static StatusCode _parser_fn_call(void);
-static StatusCode _parser_expression(void);
-static StatusCode _parser_fn(void);
-static StatusCode _parser_let(void);
-static void _parser_call_main(void);
-static StatusCode _parser_check_impl(void);
-
 /* --- FUNCTIONS --- */
-static u8 _fn_params_get(u16 idx)
+fn _fn_params_get(idx)
 {
 	return memory_r8(BANK_PARSER, OFFSET_FUNCTION_PARAMS + idx);
 }
 
-static void _fn_params_set(u16 idx, u8 parameters)
+fn _fn_params_set(idx, parameters)
 {
 	memory_w8(BANK_PARSER, OFFSET_FUNCTION_PARAMS + idx, parameters);
 }
 
-static u16 _fn_addr_get(u16 idx)
+fn _fn_addr_get(idx)
 {
 	return memory_r16(BANK_PARSER, OFFSET_FUNCTION_ADDRS + 2 * idx);
 }
 
-static void _fn_addr_set(u16 idx, u16 addr)
+fn _fn_addr_set(idx, addr)
 {
 	memory_w16(BANK_PARSER, OFFSET_FUNCTION_ADDRS + 2 * idx, addr);
 }
 
-static u16 _fn_usage_get(u16 idx)
+fn _fn_usage_get(idx)
 {
 	return memory_r16(BANK_PARSER, OFFSET_FUNCTION_USAGES + 2 * idx);
 }
 
-static void _fn_usage_set(u16 idx, u16 addr)
+fn _fn_usage_set(idx, addr)
 {
 	memory_w16(BANK_PARSER, OFFSET_FUNCTION_USAGES + 2 * idx, addr);
 }
 
-static void _fn_usage_add(void)
+fn _fn_usage_add(void)
 {
 	_fn_usage_set(_parser.UsagesCount++, _parser.Offset);
 }
 
 /* --- EMIT --- */
-static void _emit8(u8 v)
+fn _emit8(v)
 {
 	memory_w8(BANK_INTERPRETER, OFFSET_CODE + _parser.Offset, v);
 	_parser.Offset += 1;
 }
 
-static void _emit16(u16 v)
+fn _emit16(v)
 {
 	memory_w16(BANK_INTERPRETER, OFFSET_CODE + _parser.Offset, v);
 	_parser.Offset += 2;
 }
 
-static void _emit32(u32 v)
+fn _emit32(v)
 {
 	memory_w32(BANK_INTERPRETER, OFFSET_CODE + _parser.Offset, v);
 	_parser.Offset += 4;
 }
 
-static void _skip(u8 bytes)
+fn _skip(bytes)
 {
 	_parser.Offset += bytes;
 }
 
-static void _pushi(u32 value)
+fn _pushi(value)
 {
 	if(value <= 0xFF)
 	{
@@ -193,7 +664,7 @@ static void _pushi(u32 value)
 }
 
 /* --- PARSER --- */
-static i8 parser_compile(void)
+fn parser_compile(void)
 {
 	_parser.Variables.Offset = OFFSET_VARIABLES;
 	_parser.Functions.Offset = OFFSET_FUNCTIONS;
@@ -201,11 +672,11 @@ static i8 parser_compile(void)
 	_parser.BreakStack.Offset = OFFSET_BREAK_STACK;
 	_parser.ContinueStack.Offset = OFFSET_CONTINUE_STACK;
 
-	RETURN_IF(tokenizer_next());
+	tokenizer_next();
 	while(_token.Type == TT_LET)
 	{
-		RETURN_IF(_parser_let());
-		RETURN_IF(tokenizer_next());
+		_parser_var();
+		tokenizer_next();
 	}
 
 	_parser.NumGlobals = _parser.Variables.Count;
@@ -220,23 +691,18 @@ static i8 parser_compile(void)
 	while(_token.Type != TT_NULL)
 	{
 		EXPECT(TT_FN, ERROR_EXPECTED_FN);
-		RETURN_IF(_parser_fn());
-		RETURN_IF(tokenizer_next());
+		_parser_fn();
+		tokenizer_next();
 	}
 
-	RETURN_IF(_parser_check_impl());
+	_parser_check_impl();
 	return 0;
 }
 
-#define STR_MAIN_ADDR 0xFFF8
-
-static void _parser_call_main(void)
+fn _parser_call_main()
 {
-	static char _main_str[] = "main";
-	i16 i;
-
-	xmem_write(BANK_INPUT, STR_MAIN_ADDR, _main_str, sizeof(_main_str));
-	i = _identifier_map_insert(&_parser.Functions, STR_MAIN_ADDR);
+	let i;
+	i = _identifier_map_insert(&_parser.Functions, "main");
 	_fn_addr_set(i, 0);
 	_fn_params_set(i, 0);
 
@@ -247,55 +713,39 @@ static void _parser_call_main(void)
 	_emit8(INSTR_HALT);
 }
 
-static const char _undefined_reference_str[] PROGMEM =
-	"Undefined reference to `";
-
-static const char _undefined_reference_end_str[] = "`\n";
-
-static StatusCode _parser_check_impl(void)
+fn _parser_check_impl()
 {
-	u16 i;
-	u8 fail;
-
+	let i, fail;
 	fail = 0;
 	for(i = 0; i < _parser.Functions.Count; ++i)
 	{
 		if(!_fn_addr_get(i))
 		{
-			char c;
-			u16 addr;
-
+			let c, addr;
 			addr = memory_r16(BANK_PARSER, _parser.Functions.Offset + 2 * i);
-			stream_fputs_P(0, _undefined_reference_str);
+			stream_fputs_P(0, "Undefined reference to `");
 			while(is_identifier_char(c = memory_r8(BANK_INPUT, addr++)))
 			{
 				stream_fputc(0, c);
 			}
 
-			stream_fputs(0, _undefined_reference_end_str);
+			stream_fputs(0, "`\n");
 			fail = 1;
 		}
 	}
 
-	if(fail)
-	{
-		TRACE(ERROR_FN_UNDEFINED);
+	if(fail) {
+		error(ERROR_FN_UNDEFINED);
 	}
 
 	return 0;
 }
 
-static StatusCode _parser_fn(void)
+fn _parser_fn()
 {
-#ifdef DEBUG_PARSER
-	printf("---------------------------------------------------------------------\n"
-		"\t\t\t\t\t\tPARSER FN\n");
-#endif
+	let i, used, parameters;
 
-	i16 i;
-	u8 used, parameters;
-
-	RETURN_IF(tokenizer_next());
+	tokenizer_next();
 	EXPECT(TT_FN_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
 
 	if((i = identifier_map_find(&_parser.Functions, _token.Identifier)) < 0)
@@ -308,7 +758,7 @@ static StatusCode _parser_fn(void)
 		used = 1;
 		if(_fn_addr_get(i))
 		{
-			TRACE(ERROR_FN_REDEFINITION);
+			error(ERROR_FN_REDEFINITION);
 		}
 	}
 
@@ -331,18 +781,18 @@ static StatusCode _parser_fn(void)
 		}
 		else if(_token.Type != ')')
 		{
-			TRACE(ERROR_UNEXPECTED_TOKEN);
+			error(ERROR_UNEXPECTED_TOKEN);
 		}
 	}
 
-	RETURN_IF(tokenizer_next());
+	tokenizer_next();
 	EXPECT('{', ERROR_EXPECTED_L_BRACE);
 	if(used)
 	{
 		u16 j;
 		if(parameters != _fn_params_get(i))
 		{
-			TRACE(ERROR_FN_NUM_ARGS);
+			error(ERROR_FN_NUM_ARGS);
 		}
 
 		for(j = 0; j < _parser.UsagesCount; ++j)
@@ -359,7 +809,7 @@ static StatusCode _parser_fn(void)
 		_fn_params_set(i, parameters);
 	}
 
-	RETURN_IF(_parser_fn_block(parameters));
+	_parser_fn_block(parameters);
 
 	/* No return statement */
 	if(memory_r8(BANK_INTERPRETER, OFFSET_CODE + _parser.Offset - 1) != INSTR_RET)
@@ -372,132 +822,92 @@ static StatusCode _parser_fn(void)
 	return 0;
 }
 
-static StatusCode _parser_statement(void)
+fn _parser_statement()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER STATEMENT\n");
-#endif
-
-	switch(_token.Type)
-	{
-	case TT_NULL:
-		TRACE(ERROR_UNEXPECTED_EOF);
-
-	case TT_FN_IDENTIFIER:
-		RETURN_IF(_parser_action());
-		break;
-
-	case TT_LET_IDENTIFIER:
-		RETURN_IF(_parser_assign());
-		break;
-
-	case TT_IF:
-		RETURN_IF(_parser_if());
-		break;
-
-	case TT_WHILE:
-		RETURN_IF(_parser_while());
-		break;
-
-	case TT_FOR:
-		RETURN_IF(_parser_for());
-		break;
-
-	case TT_SWITCH:
-		RETURN_IF(_parser_switch());
-		break;
-
-	case TT_DO:
-		RETURN_IF(_parser_do_while());
-		break;
-
-	case TT_LOOP:
-		RETURN_IF(_parser_loop());
-		break;
-
-	case TT_BREAK:
-		RETURN_IF(_parser_break());
-		break;
-
-	case TT_CONTINUE:
-		RETURN_IF(_parser_continue());
-		break;
-
-	case TT_RETURN:
-		RETURN_IF(_parser_return(INSTR_RET));
-		break;
-
-	case TT_EXIT:
-		RETURN_IF(_parser_return(INSTR_HALT));
-		break;
-
-	case '{':
-		RETURN_IF(_parser_block());
-		break;
-
-	default:
-		TRACE(ERROR_UNEXPECTED_TOKEN);
+	if eq(_token_type, TT_NULL) {
+		error(ERROR_UNEXPECTED_EOF);
+	}
+	elif eq(_token_type, TT_FN_IDENTIFIER) {
+		_parser_action();
+	}
+	elif eq(_token_type, TT_LET_IDENTIFIER) {
+		_parser_assign();
+	}
+	elif eq(_token_type, TT_IF) {
+		_parser_if();
+	}
+	elif eq(_token_type, TT_WHILE) {
+		_parser_while();
+	}
+	elif eq(_token_type, TT_FOR) {
+		_parser_for();
+	}
+	elif eq(_token_type, TT_DO) {
+		_parser_do_while();
+	}
+	elif eq(_token_type, TT_LOOP) {
+		_parser_loop();
+	}
+	elif eq(_token_type, TT_BREAK) {
+		_parser_break();
+	}
+	elif eq(_token_type, TT_CONTINUE) {
+		_parser_continue();
+	}
+	elif eq(_token_type, TT_RETURN) {
+		_parser_return();
+	}
+	elif eq(_token_type, '{') {
+		_parser_block();
 	}
 
-	return 0;
+	error(ERROR_UNEXPECTED_TOKEN);
 }
 
-static void _popv(u8 i)
+fn _popv(i)
 {
-	if(i < _parser.NumGlobals)
-	{
+	if lt(i, _num_globals) {
 		_emit8(INSTR_POPG);
 		_emit8(i);
 	}
-	else
-	{
+	else {
 		_emit8(INSTR_POPL);
-		_emit8(i - _parser.NumGlobals);
+		_emit8(sub(i, _num_globals));
 	}
 }
 
-static void _pushv(u8 i)
+fn _pushv(i)
 {
-	if(i < _parser.NumGlobals)
-	{
+	if lt(i, _num_globals) {
 		_emit8(INSTR_PUSHG);
 		_emit8(i);
 	}
-	else
-	{
+	else {
 		_emit8(INSTR_PUSHL);
-		_emit8(i - _parser.NumGlobals);
+		_emit8(sub(i, _num_globals));
 	}
 }
 
-static StatusCode _parser_assign(void)
+fn _parser_assign()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER ASSIGN\n");
-#endif
-
-	i16 i;
+	let i;
 	if((i = identifier_map_find(&_parser.Variables, _token.Identifier)) < 0)
 	{
-		TRACE(ERROR_UNDEFINED_IDENTIFIER);
+		error(ERROR_UNDEFINED_IDENTIFIER);
 	}
 
-	RETURN_IF(tokenizer_next());
+	tokenizer_next();
 	EXPECT('=', ERROR_EXPECTED_ASSIGN);
-	RETURN_IF(tokenizer_next());
-	RETURN_IF(_parser_expression());
+	tokenizer_next();
+	_parser_expression();
 	_popv(i);
 	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
 	return 0;
 }
 
-static StatusCode _parser_action(void)
+fn _parser_action()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER ACTION\n");
-#endif
-
-	RETURN_IF(_parser_fn_call());
+	_parser_fn_call();
 
 	/* Ignored return value */
 	_emit8(INSTR_POP);
@@ -505,15 +915,9 @@ static StatusCode _parser_action(void)
 	return 0;
 }
 
-static StatusCode _parser_fn_call(void)
+fn _parser_fn_call()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER FN CALL\n");
-#endif
-
-	i16 i, addr;
-	i8 args, parameters;
-	u8 impl;
+	let i, addr, args, parameters, impl;
 
 	impl = 1;
 	args = 0;
@@ -546,24 +950,24 @@ static StatusCode _parser_fn_call(void)
 		parameters = -1;
 	}
 
-	RETURN_IF(tokenizer_next());
+	tokenizer_next();
 	EXPECT('(', ERROR_EXPECTED_L_PAREN);
-	RETURN_IF(tokenizer_next());
+	tokenizer_next();
 	while(_token.Type != ')')
 	{
-		RETURN_IF(_parser_expression());
+		_parser_expression();
 		++args;
 		if(_token.Type == ',')
 		{
-			RETURN_IF(tokenizer_next());
+			tokenizer_next();
 			if(_token.Type == ')')
 			{
-				TRACE(ERROR_UNEXPECTED_TOKEN);
+				error(ERROR_UNEXPECTED_TOKEN);
 			}
 		}
 		else if(_token.Type != ')')
 		{
-			TRACE(ERROR_UNEXPECTED_TOKEN);
+			error(ERROR_UNEXPECTED_TOKEN);
 		}
 	}
 
@@ -572,7 +976,7 @@ static StatusCode _parser_fn_call(void)
 	{
 		if(args != parameters)
 		{
-			TRACE(ERROR_FN_NUM_ARGS);
+			error(ERROR_FN_NUM_ARGS);
 		}
 	}
 	else
@@ -592,37 +996,29 @@ static StatusCode _parser_fn_call(void)
 	return 0;
 }
 
-static StatusCode _parser_let(void)
+fn _parser_var()
 {
-	u8 count;
-
+	let count;
 	count = 0;
-	do
-	{
-		RETURN_IF(tokenizer_next());
+	do {
+		tokenizer_next();
 		EXPECT(TT_LET_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
-		RETURN_IF(identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier));
+		identifier_map_insert(&_parser.Variables, _token.Number, _token.Identifier);
 		++count;
-		RETURN_IF(tokenizer_next());
+		tokenizer_next();
 	}
-	while(_token.Type == ',');
+	while(_token_type == ',');
 	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
 	return count;
 }
 
-static StatusCode _parser_fn_block(u8 local_vars)
+fn _parser_fn_block(local_vars)
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER FN BLOCK\n");
-#endif
-
-	RETURN_IF(tokenizer_next());
-	while(_token.Type == TT_LET)
+	tokenizer_next();
+	while(_token_type == TT_LET)
 	{
-		i8 rv;
-		RETURN_IF(rv = _parser_let());
-		local_vars += rv;
-		RETURN_IF(tokenizer_next());
+		local_vars += _parser_var();
+		tokenizer_next();
 	}
 
 	if(local_vars)
@@ -631,40 +1027,32 @@ static StatusCode _parser_fn_block(u8 local_vars)
 		_emit8(local_vars);
 	}
 
-	RETURN_IF(_parser_block_inner());
+	_parser_block_inner();
 	_parser.Variables.Count -= local_vars;
 	return 0;
 }
 
-static StatusCode _parser_block_inner(void)
+fn _parser_block_inner()
 {
 	while(_token.Type != '}')
 	{
-		RETURN_IF(_parser_statement());
-		RETURN_IF(tokenizer_next());
+		_parser_statement();
+		tokenizer_next();
 	}
 
 	return 0;
 }
 
-static StatusCode _parser_block(void)
+fn _parser_block()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER BLOCK\n");
-#endif
-
 	EXPECT('{', ERROR_EXPECTED_L_BRACE);
 	RETURN_IF(tokenizer_next());
 	RETURN_IF(_parser_block_inner());
 	return 0;
 }
 
-static StatusCode _parser_expression(void)
+fn _parser_expression()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER EXPRESSION\n");
-#endif
-
 	if(_token.Type == TT_NUMBER)
 	{
 		_pushi(_token.Number);
@@ -675,7 +1063,7 @@ static StatusCode _parser_expression(void)
 		i16 i;
 		if((i = identifier_map_find(&_parser.Variables, _token.Identifier)) < 0)
 		{
-			TRACE(ERROR_UNDEFINED_IDENTIFIER);
+			error(ERROR_UNDEFINED_IDENTIFIER);
 		}
 
 		_pushv(i);
@@ -688,18 +1076,14 @@ static StatusCode _parser_expression(void)
 	}
 	else
 	{
-		TRACE(ERROR_UNEXPECTED_TOKEN);
+		error(ERROR_UNEXPECTED_TOKEN);
 	}
 
 	return 0;
 }
 
-static StatusCode _parser_if(void)
+fn _parser_if()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER IF\n");
-#endif
-
 	Tokenizer state;
 	u16 idx_cond, idx_end;
 
@@ -752,12 +1136,8 @@ static StatusCode _parser_if(void)
 	return 0;
 }
 
-static StatusCode _parser_while(void)
+fn _parser_while()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER WHILE\n");
-#endif
-
 	u16 idx_before, idx_branch;
 	u8 prev_break, prev_continue;
 
@@ -795,12 +1175,8 @@ static StatusCode _parser_while(void)
 	return 0;
 }
 
-static StatusCode _parser_loop(void)
+fn _parser_loop()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER LOOP\n");
-#endif
-
 	u16 idx_before;
 	u8 prev_break, prev_continue;
 
@@ -827,12 +1203,8 @@ static StatusCode _parser_loop(void)
 	return 0;
 }
 
-static StatusCode _parser_for(void)
+fn _parser_for()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER FOR\n");
-#endif
-
 	i16 i;
 	u16 idx_cmp, idx_before, idx_branch;
 	u8 prev_break, prev_continue, type;
@@ -843,7 +1215,7 @@ static StatusCode _parser_for(void)
 
 	if((i = identifier_map_find(&_parser.Variables, _token.Identifier)) < 0)
 	{
-		TRACE(ERROR_UNDEFINED_IDENTIFIER);
+		error(ERROR_UNDEFINED_IDENTIFIER);
 	}
 
 	RETURN_IF(tokenizer_next());
@@ -911,7 +1283,7 @@ static StatusCode _parser_for(void)
 	return 0;
 }
 
-static StatusCode _parser_switch(void)
+fn _parser_switch()
 {
 	u8 i, count, prev_break;
 	u16 idx_skip, jt[64];
@@ -971,12 +1343,8 @@ static StatusCode _parser_switch(void)
 	return 0;
 }
 
-static StatusCode _parser_do_while(void)
+fn _parser_do_while()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER DO WHILE\n");
-#endif
-
 	u16 idx_begin, idx_branch;
 	u8 prev_break, prev_continue;
 
@@ -1011,17 +1379,13 @@ static StatusCode _parser_do_while(void)
 	return 0;
 }
 
-static StatusCode _parser_break(void)
+fn _parser_break()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER BREAK\n");
-#endif
-
 	RETURN_IF(tokenizer_next());
 	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
 	if(!_parser.BreakNesting)
 	{
-		TRACE(ERROR_INV_BREAK);
+		error(ERROR_INV_BREAK);
 	}
 
 	_emit8(INSTR_JMP);
@@ -1030,17 +1394,13 @@ static StatusCode _parser_break(void)
 	return 0;
 }
 
-static StatusCode _parser_continue(void)
+fn _parser_continue()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER CONTINUE\n");
-#endif
-
 	RETURN_IF(tokenizer_next());
 	EXPECT(';', ERROR_EXPECTED_SEMICOLON);
 	if(!_parser.ContinueNesting)
 	{
-		TRACE(ERROR_INV_CONTINUE);
+		error(ERROR_INV_CONTINUE);
 	}
 
 	_emit8(INSTR_JMP);
@@ -1049,23 +1409,9 @@ static StatusCode _parser_continue(void)
 	return 0;
 }
 
-static StatusCode _parser_return(u8 instr)
+fn _parser_return()
 {
-#ifdef DEBUG_PARSER
-	printf("\t\t\t\t\t\tPARSER RETURN\n");
-#endif
-
-	bool cond;
-
-	cond = false;
-
 	RETURN_IF(tokenizer_next());
-	if(_token.Type == TT_IF)
-	{
-		cond = true;
-		RETURN_IF(tokenizer_next());
-	}
-
 	if(_token.Type == ';')
 	{
 		_emit8(INSTR_PUSHI8);
@@ -1077,13 +1423,43 @@ static StatusCode _parser_return(u8 instr)
 		EXPECT(';', ERROR_EXPECTED_SEMICOLON);
 	}
 
-	if(cond)
-	{
-		_emit8(INSTR_DUP);
-		_emit8(INSTR_JZ);
-		_emit16(_parser.Offset + 3);
-	}
-
-	_emit8(instr);
+	_emit8(INSTR_RET);
 	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+fn error(code) {
+	exit 1;
+}
+
+fn main() {
+	_keywords =
+		"if\0"
+		"elif\0"
+		"else\0"
+		"do\0"
+		"while\0"
+		"for\0"
+		"to\0"
+		"inc\0"
+		"dec\0"
+		"let\0"
+		"fn\0"
+		"break\0"
+		"continue\0"
+		"return\0"
+		"loop\0"
+		"true\0"
+		"false\0"
+		"exit\0"
+		"|";
 }

@@ -1,0 +1,31 @@
+fn error1()
+{
+	return 17;
+}
+
+fn test()
+{
+	return if error1();
+	fputs(0, "After");
+
+	return 1;
+}
+
+fn escseq()
+{
+	let a;
+	a = '\x34';
+	a = '\"';
+	a = "Test \"aa\"";
+	fputs(0, a);
+	a = "\'";
+	/*a = '\'';*/
+}
+
+fn main()
+{
+	escseq();
+	fputs(0, "Return code: ");
+	fputd(0, test());
+	fputc(0, '\n');
+}

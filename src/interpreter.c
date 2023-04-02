@@ -62,6 +62,11 @@ static u8 _debug_instruction(Interpreter *i)
 		size = 1;
 		break;
 
+	case INSTR_DUP:
+		printf("DUP\n");
+		size = 1;
+		break;
+
 	case INSTR_JT:
 		{
 			u8 j, cnt;
@@ -238,7 +243,7 @@ static void interpreter_init(Interpreter *i)
 #endif
 }
 
-static i8 interpreter_step(Interpreter *i)
+static StatusCode interpreter_step(Interpreter *i)
 {
 #ifdef DEBUG_INTERPRETER
 	_debug_instruction(i);
@@ -457,6 +462,17 @@ static i8 interpreter_step(Interpreter *i)
 		/* Remove the top element from the stack */
 		i->IP += 1;
 		i->OP += 4;
+		break;
+
+	case INSTR_DUP:
+		{
+			/* Duplicate top element on the stack */
+			u32 value;
+			i->IP += 1;
+			value = memory_r32(BANK_INTERPRETER, i->OP + 4);
+			memory_w32(BANK_INTERPRETER, i->OP, value);
+			i->OP -= 4;
+		}
 		break;
 
 	default:

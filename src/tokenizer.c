@@ -21,17 +21,17 @@ typedef struct TOKENIZER
 static Token _token;
 static Tokenizer _tokenizer;
 
-static u8 _ascii_hex(i8 c)
+static u8 _ascii_hex(char c)
 {
 	return (c & 15) + (c >= 'A' ? 9 : 0);
 }
 
-static u8 _is_hex(i8 c)
+static u8 _is_hex(char c)
 {
 	return isdigit(c) || (c >= 'A' && c <= 'F');
 }
 
-static u8 _is_bin(i8 c)
+static u8 _is_bin(char c)
 {
 	return c == '0' || c == '1';
 }
@@ -85,7 +85,7 @@ static void tokenizer_init(void)
 	_tokenizer_read();
 }
 
-static i8 _tokenizer_char(u8 *v)
+static StatusCode _tokenizer_char(u8 *v)
 {
 	char b, c;
 	u8 ret;
@@ -169,7 +169,7 @@ static void _tokenizer_comment(void)
 
 static void _tokenizer_space(void)
 {
-	while(isspace(_tokenizer_advance())) ;
+	while(isspace(_tokenizer_advance())) {}
 }
 
 static void _tokenizer_skip(void)
@@ -235,7 +235,7 @@ static void _tokenizer_identifier(void)
 
 	_token.Type = (_tokenizer_current() == '(')
 			? TT_FN_IDENTIFIER
-			: TT_VAR_IDENTIFIER;
+			: TT_LET_IDENTIFIER;
 
 	return;
 }
@@ -273,7 +273,7 @@ static void _tokenizer_binary(void)
 }
 
 #ifdef ENABLE_FLOAT
-static i8 _tokenizer_float(i32 n)
+static StatusCode _tokenizer_float(i32 n)
 {
 	char c;
 	i32 f, d;
@@ -298,7 +298,7 @@ static i8 _tokenizer_float(i32 n)
 }
 #endif
 
-static i8 _tokenizer_decimal(i8 b)
+static StatusCode _tokenizer_decimal(i8 b)
 {
 	i32 n;
 	char c;
@@ -342,7 +342,7 @@ static i8 _tokenizer_decimal(i8 b)
 	return 0;
 }
 
-static i8 _tokenizer_number(void)
+static StatusCode _tokenizer_number(void)
 {
 	char c, b;
 
@@ -365,7 +365,7 @@ static i8 _tokenizer_number(void)
 	return 0;
 }
 
-static i8 _tokenizer_char_literal(void)
+static StatusCode _tokenizer_char_literal(void)
 {
 	u8 v;
 	char c;
@@ -389,7 +389,7 @@ static i8 _tokenizer_char_literal(void)
 	return 0;
 }
 
-static i8 _tokenizer_string_literal(void)
+static StatusCode _tokenizer_string_literal(void)
 {
 	u8 v;
 	u16 offset;
@@ -426,7 +426,7 @@ static const char *_token_type_string(i8 code)
 		case TT_NULL:           return "TT_NULL";
 		case TT_NUMBER:         return "TT_NUMBER";
 		case TT_FN_IDENTIFIER:  return "TT_FN_IDENTIFIER";
-		case TT_VAR_IDENTIFIER: return "TT_VAR_IDENTIFIER";
+		case TT_LET_IDENTIFIER: return "TT_LET_IDENTIFIER";
 		case TT_IF:             return "TT_IF";
 		case TT_ELIF:           return "TT_ELIF";
 		case TT_ELSE:           return "TT_ELSE";
@@ -436,7 +436,7 @@ static const char *_token_type_string(i8 code)
 		case TT_TO:             return "TT_TO";
 		case TT_INC:            return "TT_INC";
 		case TT_DEC:            return "TT_DEC";
-		case TT_VAR:            return "TT_VAR";
+		case TT_LET:            return "TT_LET";
 		case TT_FN:             return "TT_FN";
 		case TT_BREAK:          return "TT_BREAK";
 		case TT_CONTINUE:       return "TT_CONTINUE";
@@ -454,7 +454,7 @@ static const char *_token_type_string(i8 code)
 static void _tokenizer_debug(void)
 {
 	printf("%3d:%3d    ", _token.Pos.Row, _token.Pos.Col);
-	if(_token.Type == TT_VAR_IDENTIFIER ||
+	if(_token.Type == TT_LET_IDENTIFIER ||
 		_token.Type == TT_FN_IDENTIFIER)
 	{
 		printf("%s\n", _token.Identifier);
@@ -479,7 +479,7 @@ static void _tokenizer_debug(void)
 
 #endif
 
-static i8 tokenizer_next(void)
+static StatusCode tokenizer_next(void)
 {
 	char c;
 

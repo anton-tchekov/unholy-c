@@ -5,21 +5,21 @@
 #define TRACE(E) \
 	do \
 	{ \
-		i8 __ret = -(E) - 1; \
+		StatusCode __ret = -(E) - 1; \
 		fprintf(stderr, "[ Trace ] %s - %s:%d (%s)\n", error_message(__ret), __FILE__, __LINE__, __func__); \
 		return __ret; \
-	} while(0)
+	} while(false)
 
 #define RETURN_IF(E) \
 	do \
 	{ \
-		i8 __ret; \
+		StatusCode __ret; \
 		if((__ret = (E)) < 0) \
 		{ \
 			fprintf(stderr, "[ Trace ] %s - %s:%d (%s)\n", error_message(__ret), __FILE__, __LINE__, __func__); \
 			return __ret; \
 		} \
-	} while(0)
+	} while(false)
 
 #else
 
@@ -27,17 +27,17 @@
 	do \
 	{ \
 		return -(E) - 1; \
-	} while(0)
+	} while(false)
 
 #define RETURN_IF(E) \
 	do \
 	{ \
-		i8 ret; \
-		if((ret = (E)) < 0) \
+		StatusCode __ret; \
+		if((__ret = (E)) < 0) \
 		{ \
-			return ret; \
+			return __ret; \
 		} \
-	} while(0)
+	} while(false)
 
 #endif
 
@@ -78,12 +78,12 @@
 
 FOREACH_ERROR(GENERATE_STRING)
 
-enum NANOC_ERROR
+typedef enum STATUS_CODE
 {
 	FOREACH_ERROR(GENERATE_ENUM)
-};
+} StatusCode;
 
-static const char *error_message(i8 code)
+static const char *error_message(StatusCode code)
 {
 	static const char *const _err_msgs[] PROGMEM =
 	{

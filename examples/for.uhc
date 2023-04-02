@@ -1,6 +1,6 @@
 fn main()
 {
-	var i;
+	let i;
 
 	fputs(0, "Hello World\n");
 

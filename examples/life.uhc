@@ -1,9 +1,9 @@
 /* constants */
-var WIDTH, HEIGHT;
+let WIDTH, HEIGHT;
 
 fn main()
 {
-	var board1, board2;
+	let board1, board2;
 
 	WIDTH = 40;
 	HEIGHT = 20;
@@ -30,14 +30,14 @@ fn main()
 
 fn delay(ms)
 {
-	var end;
+	let end;
 	end = add(millis(), ms);
 	while lt(millis(), end) {}
 }
 
 fn board_update(board1, board2)
 {
-	var x, y, adj;
+	let x, y, adj;
 
 	for y = 0 to HEIGHT {
 		for x = 0 to WIDTH {
@@ -65,7 +65,7 @@ fn clear()
 
 fn board_draw(board)
 {
-	var x, y;
+	let x, y;
 
 	clear();
 	for y = 0 to HEIGHT {
@@ -102,7 +102,7 @@ fn _cell_ptr(board, x, y)
 
 fn _draw_char(v)
 {
-	var c;
+	let c;
 
 	if v {
 		c = 'X';
@@ -137,7 +137,7 @@ fn _check_bounds(x, y)
 
 fn _neighbours(board, x, y)
 {
-	var count, left, right, top, bottom;
+	let count, left, right, top, bottom;
 
 	count = 0;
 

@@ -32,7 +32,7 @@ See `examples/` directory for code examples.
 
 ## Variables
 
-Local variables can be only be declared at the beginning of a function with the `var`
+Local variables can be only be declared at the beginning of a function with the `let`
 keyword. Every local variable is 32-bit in size. Variables can not be initialized
 during declaration.
 
@@ -43,8 +43,8 @@ Additionally, the first character can not be a number.
 
     fn test()
     {
-        var value, number;
-        var count;
+        let value, number;
+        let count;
     }
 
 Global variables and constants must be defined at the beginning of the file,
@@ -52,7 +52,7 @@ before all functions.
 
 **Example:**
 
-    var _counter;
+    let _counter;
     const ANSWER = 42;
     const PI = 3.1416;
 
@@ -527,9 +527,12 @@ two stacks and the parameter copying when calling a function.
 
 ### Features
 
-- compile time constants
-- better switch-case
-
 ### Known Bugs
+- Escape Sequence Bug
+- compile time constants
+- data definitions (array constants)
+- function pointers
+- remove switch case
+
 
 ### Untested

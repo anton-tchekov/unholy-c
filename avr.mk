@@ -59,7 +59,11 @@ CFLAGS += -g -O$(OPT) \
 -Wall -Wstrict-prototypes \
 -fstack-usage \
 -Wa,-adhlns=$(<:.c=.lst) -std=gnu99 -mmcu=$(MCU) \
--I'include/' -DPLATFORM=PLATFORM_AVR
+-I'include/' -DPLATFORM=PLATFORM_AVR \
+-DENABLE_FLOAT \
+-DENABLE_RANDOM \
+-DENABLE_CHAR \
+-DENABLE_FILE
 
 all: $(TARGET).elf size
 

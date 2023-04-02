@@ -546,7 +546,7 @@ static const i8 _num_parameters[] PROGMEM =
 	2, /* inv  */
 	2, /* shl  */
 	2, /* shr  */
-	2, /* not  */
+	1, /* not  */
 	2, /* eq   */
 	2, /* ne   */
 	2, /* lt   */
@@ -878,6 +878,9 @@ static const char _identifiers[] PROGMEM =
 	"ru8\0"
 	"rs16\0"
 	"rs8\0"
+
+	"alloc\0"
+	"free\0"
 
 	"mcpy\0"
 	"mcmp\0"
