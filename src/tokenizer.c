@@ -138,7 +138,7 @@ static StatusCode _tokenizer_char(u8 *v)
 	}
 
 	*v = ret;
-	return 0;
+	return SUCCESS;
 }
 
 static void _tokenizer_comment(void)
@@ -294,7 +294,7 @@ static StatusCode _tokenizer_float(i32 n)
 	}
 
 	_token.Number = fbti(n + (f32)f / (f32)d);
-	return 0;
+	return SUCCESS;
 }
 #endif
 
@@ -339,7 +339,7 @@ static StatusCode _tokenizer_decimal(i8 b)
 #endif
 
 	_token.Number = n;
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _tokenizer_number(void)
@@ -362,7 +362,7 @@ static StatusCode _tokenizer_number(void)
 		return _tokenizer_decimal(b);
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _tokenizer_char_literal(void)
@@ -386,7 +386,7 @@ static StatusCode _tokenizer_char_literal(void)
 	_tokenizer_advance();
 	_token.Type = TT_NUMBER;
 	_token.Number = v;
-	return 0;
+	return SUCCESS;
 }
 
 static StatusCode _tokenizer_string_literal(void)
@@ -414,7 +414,7 @@ static StatusCode _tokenizer_string_literal(void)
 
 	_token.Type = TT_NUMBER;
 	_token.Number = offset;
-	return 0;
+	return SUCCESS;
 }
 
 #ifdef DEBUG_TOKENIZER
@@ -516,6 +516,6 @@ static StatusCode tokenizer_next(void)
 	_tokenizer_debug();
 #endif
 
-	return 0;
+	return SUCCESS;
 }
 

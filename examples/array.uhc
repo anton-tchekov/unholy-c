@@ -3,17 +3,17 @@ fn main() {
     fputs(0, "[ \n");
     fputs(0, "GHKJLkgjhsudl\n");
     array = array_new(5);
-    
-    
+    /*array_print(array);*/
+
     /*
-    
-    array_print(array);
+
+
     array_set(array, 0, 5);
     array_set(array, 1, 10);
     array_set(array, 2, 6);
     array_set(array, 3, 18);
     array_set(array, 4, 1);
-    
+
     */
 }
 
@@ -36,22 +36,24 @@ fn array_len(array){
 }
 fn array_print(array){
     let i;
-    
+
 
     /* for i = 0 to sub(array_len(array), 1) {
         fputd(0, array_get(array, i));
         fputs(0, ", ");
     }
-    
+
     fputs(0, " ]"); */
     return;
 }
 
-fn _calc_off(i) {
-    return add(mul(4, i), 4);
-}
 fn _check_bounds(array, index) {
     if hs(index, r32(array)) {
         exit 1;
     }
+}
+
+
+fn _calc_off(i) {
+    return add(mul(4, i), 4);
 }

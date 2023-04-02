@@ -486,5 +486,5 @@ static StatusCode interpreter_step(Interpreter *i)
 #endif
 
 	/* Success, next instruction */
-	return 0;
+	return SUCCESS;
 }

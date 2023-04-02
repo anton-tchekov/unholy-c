@@ -87,7 +87,8 @@ int main(void)
 	fs_fclose(file);
 
 	tokenizer_init();
-	if((ret = parser_compile()) && ret != ERROR_FN_UNDEFINED)
+	ret = parser_compile();
+	if(ret && ret != ERROR_FN_UNDEFINED)
 	{
 		char c;
 		u16 i, s;

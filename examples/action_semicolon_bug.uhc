@@ -1,0 +1,4 @@
+fn main()
+{
+	fputs(0, "hello") hi
+}
