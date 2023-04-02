@@ -3,7 +3,7 @@ CFLAGS=\
 	-Werror=uninitialized \
 	-Werror=return-type \
 	-Werror=implicit-function-declaration \
-	-Wall -Wextra -pedantic -std=c99 -O2 -g \
+	-Wall -Wextra -pedantic -std=c99 -g \
 	-DDEBUG \
 	-DPLATFORM=PLATFORM_LINUX \
 	-DENABLE_FLOAT \

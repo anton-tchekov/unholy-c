@@ -5,8 +5,8 @@
 #define TRACE(E) \
 	do \
 	{ \
-		StatusCode __ret = -(E) - 1; \
-		fprintf(stderr, "[ Trace ] %s - %s:%d (%s)\n", error_message(__ret), __FILE__, __LINE__, __func__); \
+		StatusCode __ret = (E); \
+		fprintf(stderr, "[ Trace ] %s - %s:%d (%s)\n", status_message(__ret), __FILE__, __LINE__, __func__); \
 		return __ret; \
 	} while(false)
 
@@ -14,9 +14,9 @@
 	do \
 	{ \
 		StatusCode __ret; \
-		if((__ret = (E)) < 0) \
+		if((__ret = (E))) \
 		{ \
-			fprintf(stderr, "[ Trace ] %s - %s:%d (%s)\n", error_message(__ret), __FILE__, __LINE__, __func__); \
+			fprintf(stderr, "[ Trace ] %s - %s:%d (%s)\n", status_message(__ret), __FILE__, __LINE__, __func__); \
 			return __ret; \
 		} \
 	} while(false)
@@ -26,14 +26,14 @@
 #define TRACE(E) \
 	do \
 	{ \
-		return -(E) - 1; \
+		return (E); \
 	} while(false)
 
 #define RETURN_IF(E) \
 	do \
 	{ \
 		StatusCode __ret; \
-		if((__ret = (E)) < 0) \
+		if((__ret = (E))) \
 		{ \
 			return __ret; \
 		} \
@@ -42,6 +42,7 @@
 #endif
 
 #define FOREACH_ERROR(ERROR) \
+	ERROR(SUCCESS) \
 	ERROR(UNEXPECTED_EOF) \
 	ERROR(UNEXPECTED_TOKEN) \
 	ERROR(EXPECTED_L_BRACE) \
@@ -83,19 +84,12 @@ typedef enum STATUS_CODE
 	FOREACH_ERROR(GENERATE_ENUM)
 } StatusCode;
 
-static const char *error_message(StatusCode code)
+static const char *status_message(StatusCode code)
 {
 	static const char *const _err_msgs[] PROGMEM =
 	{
-		"",
 		FOREACH_ERROR(GENERATE_STRING_ARRAY)
 	};
 
-	i8 idx = -code;
-	if(idx < 0 || idx >= (i8)ARRLEN(_err_msgs))
-	{
-		idx = 0;
-	}
-
-	return pgm_read_ptr(_err_msgs + idx);
+	return pgm_read_ptr(_err_msgs + code);
 }

@@ -8,7 +8,7 @@
 #include "spi.c"
 #include "util.c"
 #include "instr.c"
-#include "error.c"
+#include "status.c"
 #include "uart.c"
 #include "xmem.c"
 #include "memory.c"
@@ -40,7 +40,7 @@ int main(void)
 #endif
 {
 	u8 file;
-	i8 ret;
+	StatusCode ret;
 	Interpreter i;
 	const char *filename;
 
@@ -95,7 +95,7 @@ int main(void)
 		stream_fputc(0, ':');
 		stream_fputd(0, _token.Pos.Col);
 		stream_fputs(0, ": ");
-		stream_fputs(0, error_message(ret));
+		stream_fputs(0, status_message(ret));
 		stream_fputc(0, '\n');
 		stream_fputde(0, _token.Pos.Row, 5);
 		stream_fputs(0, " | ");
