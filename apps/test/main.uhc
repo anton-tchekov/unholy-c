@@ -1,5 +1,5 @@
 
-fn draw_string(x, y, str)
+fn draw_string(x, y, str, str_color)
 {
 	let c;
 	loop {
@@ -8,12 +8,12 @@ fn draw_string(x, y, str)
 			break;
 		}
 
-		x = add(x, draw_char(x, y, c));
+		x = add(x, draw_char(x, y, c, str_color));
 		str = add(str, 1);
 	}
 }
 
-fn draw_char(x, y, c)
+fn draw_char(x, y, c, t_color)
 {
 	let font, set, x1, y1, i, j, byte, xe, ye;
 	font = get_char_str(c);
@@ -29,7 +29,7 @@ fn draw_char(x, y, c)
 		for y1 = y to ye {
 			if and(shr(byte, j), 1) {
 				/* MUCHOS IMPORTANTE xD */
-				rect(x1, y1, 1, 1, color(0x7C, 0x70, 0xE0));
+				rect(x1, y1, 1, 1, t_color);
 			}
 
 			j = add(j, 1);
@@ -142,27 +142,43 @@ fn get_char_str(c) {
 	return add(font, mul(sub(c, 32), 8));
 }
 fn main () {
-	let c, dir;
+	let c, dir, default_color, color_red, color_white, color_black;
 	c = 0;
 	dir = 0;
+	default_color = color(0x7C, 0x70, 0xE0);
+	color_red = color(0xFF, 0x00, 0x00);
+	color_white = color(0xFF, 0xFF, 0xFF);
+	color_black = color(0x00, 0x00, 0x00);
+
+	/* Border for official C64 Screen size (320x200) */
+
+	rect(0, 0, 320, 200, color_white);
+	rect(1, 1, 318, 198, color_black);
+
 
 	loop {
-		draw_string(10, 10, "**** COMMODORE 64 BASIC V2 ****");
-		draw_string(10, 20, "READY.");
+		draw_string(10, 10, "**** COMMODORE 64 BASIC V2 ****", default_color);
+		draw_string(10, 20, "READY.", default_color);
 
-		draw_string(10, 40, "Hallo Tim,");
-		draw_string(10, 50, "");
-		draw_string(10, 60, "Leider ist es jetzt schon");
-		draw_string(10, 70, "2 Uhr Nachts und ich muss um");
-		draw_string(10, 80, "7 Uhr aufstehen. Deswegen");
-		draw_string(10, 90, "ist es nicht ganz fertig geworden");
-		draw_string(10, 100, "mit dem Grafik rendering");
-		draw_string(10, 110, "von Bildern (also RGB, RGBA, ");
-		draw_string(10, 120, "RGB565, 1BIT, GRAYSCALE)");
-		draw_string(10, 130, "lib/platform.h interface koennte");
-		draw_string(10, 140, "interessant sein ...");
+		draw_string(10, 40, "Hallo Tim,", default_color);
+		draw_string(10, 50, "", default_color);
+		draw_string(10, 60, "Leider ist es jetzt schon", default_color);
+		draw_string(10, 70, "2 Uhr Nachts und ich muss um", default_color);
+		draw_string(10, 80, "7 Uhr aufstehen. Deswegen", default_color);
+		draw_string(10, 90, "ist es nicht ganz fertig geworden", default_color);
+		draw_string(10, 100, "mit dem Grafik rendering", default_color);
+		draw_string(10, 110, "von Bildern (also RGB, RGBA, ", default_color);
+		draw_string(10, 120, "RGB565, 1BIT, GRAYSCALE)", default_color);
+		draw_string(10, 130, "lib/platform.h interface koennte", default_color);
+		draw_string(10, 140, "interessant sein ...", default_color);
 
-		draw_string(10, 160, "~ Anton");
+		draw_string(10, 160, "~ Anton", default_color);
+
+		draw_string(10, 210, "OK.", color_red);
+		draw_string(10, 220, "Musste es jetzt mal ausprobieren.", color_red);
+		draw_string(10, 230, "Und ich habe die Mgl. gemacht,", color_red);
+		draw_string(10, 240, "dass man die Farbe wechseln kann", color_red);
+		
 
 		if eq(dir, 0)
 		{
@@ -175,7 +191,7 @@ fn main () {
 			if le(c, 0) { dir = 0; c = 0; }
 		}
 
-		rect(10, 180, 300, 10, color(c, 0, 0));
+		rect(10, 300, 300, 10, color(c, 0, 0));
 
 
 		update();
