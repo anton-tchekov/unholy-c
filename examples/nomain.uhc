@@ -1,4 +1,0 @@
-fn test()
-{
-	fputs(0, "hello");
-}

@@ -1,5 +1,3 @@
-#include "types.h"
-
 #ifdef DEBUG
 
 #define TRACE(E) \

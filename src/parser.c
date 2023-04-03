@@ -299,9 +299,6 @@ static StatusCode _parser_fn(void)
 	RETURN_IF(tokenizer_next());
 	EXPECT(TT_FN_IDENTIFIER, ERROR_EXPECTED_IDENTIFIER);
 
-	printf("identifier: %s\n", _token.Identifier);
-	printf("addr: %d\n", _parser.Offset);
-
 	if((i = identifier_map_find(&_parser.Functions, _token.Identifier)) < 0)
 	{
 		used = 0;

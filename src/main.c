@@ -1,21 +1,16 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
 
 #include "types.h"
+#include "platform.h"
+#include "terminal.h"
 
-#include "gui.c"
-#include "spi.c"
 #include "util.c"
 #include "instr.c"
 #include "status.c"
-#include "uart.c"
-#include "xmem.c"
-#include "memory.c"
-#include "fs.c"
-#include "stream.c"
-#include "timer.c"
 #include "builtin.c"
 #include "token.c"
 #include "tokenizer.c"
@@ -26,13 +21,6 @@ static const char _usage_str[] PROGMEM = "Usage: ./nanoc [file]\n";
 static const char _fail_open_str[] PROGMEM = "Failed to open file ";
 static const char _memory_test_failed[] PROGMEM = "Memory Test FAILED\n";
 static const char _memory_test_passed[] PROGMEM = "Memory Test PASSED\n";
-
-static void panic(void)
-{
-	for(;;)
-	{
-	}
-}
 
 #if PLATFORM == PLATFORM_LINUX
 int main(int argc, char **argv)
@@ -45,11 +33,7 @@ int main(void)
 	Interpreter i;
 	const char *filename;
 
-	timer_init();
-	uart_init();
-	xmem_init();
-	fs_init();
-	os_init();
+	platform_init();
 
 #if PLATFORM == PLATFORM_LINUX
 	if(argc != 2)
@@ -135,12 +119,13 @@ int main(void)
 	{
 	}
 
+	graphics_destroy();
+
 #if PLATFORM == PLATFORM_AVR
 	for(;;)
 	{
 	}
 #endif
-
 
 	return 0;
 }

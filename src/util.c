@@ -1,6 +1,3 @@
-#define ARRLEN(a) (sizeof(a) / sizeof(*a))
-#define ABS(n) (((n) < 0) ? -(n) : (n))
-
 static i8 _string_find(const char *str, const char *name)
 {
 	u8 found;
@@ -35,8 +32,6 @@ static i8 _string_find(const char *str, const char *name)
 	return -1;
 }
 
-#ifdef ENABLE_FLOAT
-
 /* memcpy needed because of strict aliasing rules */
 static u32 fbti(f32 p)
 {
@@ -51,5 +46,3 @@ static f32 ibtf(u32 p)
 	memcpy(&f, &p, 4);
 	return f;
 }
-
-#endif

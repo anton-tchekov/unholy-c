@@ -272,7 +272,6 @@ static void _tokenizer_binary(void)
 	_token.Number = n;
 }
 
-#ifdef ENABLE_FLOAT
 static StatusCode _tokenizer_float(i32 n)
 {
 	char c;
@@ -296,7 +295,6 @@ static StatusCode _tokenizer_float(i32 n)
 	_token.Number = fbti(n + (f32)f / (f32)d);
 	return SUCCESS;
 }
-#endif
 
 static StatusCode _tokenizer_decimal(i8 b)
 {
@@ -331,12 +329,10 @@ static StatusCode _tokenizer_decimal(i8 b)
 		n = -n;
 	}
 
-#ifdef ENABLE_FLOAT
 	if(c == '.')
 	{
 		return _tokenizer_float(n);
 	}
-#endif
 
 	_token.Number = n;
 	return SUCCESS;

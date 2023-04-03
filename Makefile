@@ -1,38 +1,20 @@
-CC=gcc
-CFLAGS=\
-	-Werror=uninitialized \
-	-Werror=return-type \
-	-Werror=implicit-function-declaration \
-	-Wall -Wextra -pedantic -std=c99 -g \
-	-DDEBUG \
-	-DPLATFORM=PLATFORM_LINUX \
-	-DENABLE_FLOAT \
-	-DENABLE_RANDOM \
-	-DENABLE_CHAR \
-	-DENABLE_FILE \
-	-lSDL2
+.PHONY: simulator
+simulator:
+	make -f platform/simulator/Makefile
 
-LDFLAGS=-lm
-MAIN=src/main.c
-
-TARGET=nanoc
-
-all: $(MAIN)
-	$(CC) -o $(TARGET) $(MAIN) $(CFLAGS) $(LDFLAGS)
+.PHONY: run
+run:
+	./platform/simulator/main $(FILE)
 
 .PHONY: avr
 avr:
-	make -f avr.mk
+	make -f platform/avr/Makefile
 	avr-nm --size-sort -t d -S main.elf
 
 .PHONY: check
 check:
-	avrdude -pm328p -carduino -P/dev/ttyUSB2 -b57600
+	avrdude -pm328p -carduino -P/dev/ttyUSB0 -b57600
 
 .PHONY: upload
 upload:
-	avrdude -pm328p -carduino -P/dev/ttyUSB2 -b57600 -U main.elf
-
-.PHONY: clean
-clean:
-	rm -f $(TARGET)
+	avrdude -pm328p -carduino -P/dev/ttyUSB0 -b57600 -U main.elf

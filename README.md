@@ -449,6 +449,22 @@ Quote from the link:
 
 ## Code Overview
 
+**Directories:**
+
+- `src/`: NanoC Compiler and Interpreter
+
+- `platform/`: Platform specific code
+	- `simulator/`
+	- `avr/`
+
+- `lib/`: Library code
+
+- `apps/`: UnholyC Apps
+	- `editor/`: Code and text editor
+	- `test/`: For Testing purposes
+
+- `examples/`: UnholyC Examples
+
 **Utility:**
 
 - `types.h`: Contains integer type definitions and platform dependant
@@ -465,20 +481,18 @@ generates the enum and error messages automatically.
 `_string_find` is used to detect keywords and builtin functions
 by finding the position of a string in another, delimiter separated string.
 
-- `memory.c`: External memory access interface / emulation
-
 - `instr.c`: Bytecode instruction definitions (e.g. `INSTR_CALL`)
 
 - `token.c`: Token type and keyword definitions like `TT_IF`, `TT_WHILE`, etc.
 
 **Main:**
 
-`builtin.c`: Contains builtin functions like `mul`, `sin`, `isupper`, etc.
+- `builtin.c`: Contains builtin functions like `mul`, `sin`, `isupper`, etc.
 
-`tokenizer.c`: Extracts the next token from the source file
+- `tokenizer.c`: Extracts the next token from the source file
 (keyword, identifier, literal, etc.) and passes it to the parser.
 
-`parser.c`: Predictive recursive descent parser. Requests tokens from
+- `parser.c`: Predictive recursive descent parser. Requests tokens from
 the Tokenizer and outputs bytecode instructions.
 
 An IdentifierMap stores the locations of identifiers
@@ -505,7 +519,7 @@ however the current aim is to have a sort of scripting language for
 embedded systems with Harvard ISA that can only execute code from
 their flash memory so the interpreter part is to work around that.
 
-`interpreter.c`: Runs the bytecode
+- `interpreter.c`: Runs the bytecode
 
 The instruction set only needs 13 instructions.
 It uses two stacks, the regular call stack and an operand stack.
@@ -514,25 +528,17 @@ two stacks and the parameter copying when calling a function.
 
 **Driver:**
 
-`main.c`: Used for Testing/driving the main code
+- `main.c`: Used for Testing/driving the main code
 
 ## TODO
-
-### Priority
 
 - AVR: timing ISR
 - file and terminal i/o
 	fgetc, fgets, directory functions, fcopy, fmove, fdel,
 	SD-Card
-
-### Features
-
-### Known Bugs
+- function pointers?
+- variadic functions?
 - Escape Sequence Bug
 - compile time constants
 - data definitions (array constants)
-- function pointers
-- remove switch case
-
-
-### Untested
+- remove switch case?

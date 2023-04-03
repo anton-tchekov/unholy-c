@@ -115,8 +115,6 @@ static u32 _ls(u32 *p)
 }
 
 /* FLOAT */
-#ifdef ENABLE_FLOAT
-
 static u32 _itf(u32 *p)
 {
 	return fbti((f32)p[0]);
@@ -267,10 +265,6 @@ static u32 _round(u32 *p)
 	return fbti(round(ibtf(p[0])));
 }
 
-#endif
-
-#ifdef ENABLE_CHAR
-
 /* CHAR */
 static u32 _isupper(u32 *p)
 {
@@ -337,8 +331,6 @@ static u32 _toupper(u32 *p)
 	return toupper(p[0]);
 }
 
-#endif
-
 /* MEMORY */
 static u32 _w32(u32 *p)
 {
@@ -403,22 +395,21 @@ static u32 _mchr(u32 *p)
 
 static u32 _mset(u32 *p)
 {
-	xmem_set(BANK_INTERPRETER, p[0], p[1], p[2]);
+	memory_set(BANK_INTERPRETER, p[0], p[1], p[2]);
 	return 0;
 }
 
 static u32 _alloc(u32 *p)
 {
 	return 0;
+	(void)p;
 }
 
 static u32 _free(u32 *p)
 {
 	return 0;
+	(void)p;
 }
-
-
-#ifdef ENABLE_RANDOM
 
 /* RANDOM */
 static u32 _srand(u32 *p)
@@ -432,8 +423,6 @@ static u32 _rand(u32 *p)
 	return rand();
 	(void)p;
 }
-
-#endif
 
 /* IO */
 static u32 _fputs(u32 *p)
@@ -472,8 +461,6 @@ static u32 _fputxe(u32 *p)
 	return 0;
 }
 
-#ifdef ENABLE_FLOAT
-
 static u32 _fputf(u32 *p)
 {
 	stream_fputf(p[0], ibtf(p[1]));
@@ -486,15 +473,11 @@ static u32 _fputfe(u32 *p)
 	return 0;
 }
 
-#endif
-
 static u32 _fputc(u32 *p)
 {
 	stream_fputc(p[0], p[1]);
 	return 0;
 }
-
-#ifdef ENABLE_FILE
 
 /* FILE */
 static u32 _file_open(u32 *p)
@@ -505,15 +488,15 @@ static u32 _file_open(u32 *p)
 	return fs_fopen(name_buf, mode_buf);
 }
 
-static u32 _file_read(u32 *p)
-{
-	fs_fread(p[0], BANK_INTERPRETER, p[1], p[2]);
-	return 0;
-}
-
 static u32 _file_close(u32 *p)
 {
 	fs_fclose(p[0]);
+	return 0;
+}
+
+static u32 _file_read(u32 *p)
+{
+	fs_fread(p[0], BANK_INTERPRETER, p[1], p[2]);
 	return 0;
 }
 
@@ -534,27 +517,69 @@ static u32 _file_tell(u32 *p)
 	return fs_ftell(p[0]);
 }
 
-#endif
-
 static u32 _millis(u32 *p)
 {
-	return millis();
+	return timer_millis();
 	(void)p;
 }
 
 static u32 _rect(u32 *p)
 {
-	render_rect(p[0], p[1], p[2], p[3], p[4]);
-	SDL_UpdateTexture(framebuffer, NULL, _pixels, WINDOW_WIDTH * sizeof(u32));
-		SDL_RenderClear(renderer);
-		SDL_RenderCopy(renderer, framebuffer, NULL, NULL);
-		SDL_RenderPresent(renderer);
+	graphics_rect(p[0], p[1], p[2], p[3], p[4]);
 	return 0;
 }
 
 static u32 _color(u32 *p)
 {
-	return render_color(p[0], p[1], p[2]);
+	return graphics_color(p[0], p[1], p[2]);
+}
+
+static u32 _update(u32 *p)
+{
+	graphics_update();
+	return 0;
+	(void)p;
+}
+
+
+
+float hue2rgb(float p, float q, float t) {
+
+  if (t < 0)
+    t += 1;
+  if (t > 1)
+    t -= 1;
+  if (t < 1./6)
+    return p + (q - p) * 6 * t;
+  if (t < 1./2)
+    return q;
+  if (t < 2./3)
+    return p + (q - p) * (2./3 - t) * 6;
+
+  return p;
+
+}
+
+u32 hsl2rgb(float h, float s, float l) {
+
+  u32 r, g, b;
+  if(0 == s) {
+    r = g = b = l; // achromatic
+  }
+  else {
+    float q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    float p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1./3) * 255;
+    g = hue2rgb(p, q, h) * 255;
+    b = hue2rgb(p, q, h - 1./3) * 255;
+  }
+
+	return graphics_color(r, g, b);
+}
+
+static u32 _hsl_to_rgb(u32 *p)
+{
+	return hsl2rgb((double)ibtf(p[0]), (double)ibtf(p[1]), (double)ibtf(p[2]));
 }
 
 static const i8 _num_parameters[] PROGMEM =
@@ -584,7 +609,6 @@ static const i8 _num_parameters[] PROGMEM =
 	2, /* hs   */
 	2, /* ls   */
 
-#ifdef ENABLE_FLOAT
 	/* FLOAT */
 	1, /* itf  */
 	1, /* fti  */
@@ -618,9 +642,7 @@ static const i8 _num_parameters[] PROGMEM =
 	1, /* ceil  */
 	1, /* floor */
 	1, /* round */
-#endif
 
-#ifdef ENABLE_CHAR
 	/* CHAR */
 	1, /* isupper  */
 	1, /* islower  */
@@ -635,7 +657,6 @@ static const i8 _num_parameters[] PROGMEM =
 	1, /* isxdigit */
 	1, /* tolower  */
 	1, /* toupper  */
-#endif
 
 	/* MEMORY */
 	2, /* w32  */
@@ -655,11 +676,9 @@ static const i8 _num_parameters[] PROGMEM =
 	3, /* mchr */
 	3, /* mset */
 
-#ifdef ENABLE_RANDOM
 	/* RANDOM */
 	1, /* srand */
 	0, /* rand  */
-#endif
 
 	/* IO */
 	2, /* fputs */
@@ -669,14 +688,11 @@ static const i8 _num_parameters[] PROGMEM =
 	2, /* fputx */
 	3, /* fputxe */
 
-#ifdef ENABLE_FLOAT
 	2, /* fputf */
 	4, /* fputfe */
-#endif
 
 	2, /* fputc */
 
-#ifdef ENABLE_FILE
 	/* FILE */
 	2, /* fopen  */
 	3, /* fread  */
@@ -684,12 +700,13 @@ static const i8 _num_parameters[] PROGMEM =
 	3, /* fwrite */
 	2, /* fseek  */
 	1, /* ftell  */
-#endif
 
 	0, /* millis */
 
 	5, /* rect  */
 	3, /* color */
+	0, /* update */
+	3, /* hsl_to_rgb */
 };
 
 typedef u32 (*const builtin_ptr)(u32 *);
@@ -721,7 +738,6 @@ static builtin_ptr _builtins[] PROGMEM =
 	_hs,
 	_ls,
 
-#ifdef ENABLE_FLOAT
 	/* FLOAT */
 	_itf,
 	_fti,
@@ -755,9 +771,7 @@ static builtin_ptr _builtins[] PROGMEM =
 	_ceil,
 	_floor,
 	_round,
-#endif
 
-#ifdef ENABLE_CHAR
 	/* CHAR */
 	_isupper,
 	_islower,
@@ -772,7 +786,6 @@ static builtin_ptr _builtins[] PROGMEM =
 	_isxdigit,
 	_tolower,
 	_toupper,
-#endif
 
 	/* MEMORY */
 	_w32,
@@ -792,11 +805,9 @@ static builtin_ptr _builtins[] PROGMEM =
 	_mchr,
 	_mset,
 
-#ifdef ENABLE_RANDOM
 	/* RANDOM */
 	_srand,
 	_rand,
-#endif
 
 	/* IO */
 	_fputs,
@@ -806,14 +817,11 @@ static builtin_ptr _builtins[] PROGMEM =
 	_fputx,
 	_fputxe,
 
-#ifdef ENABLE_FLOAT
 	_fputf,
 	_fputfe,
-#endif
 
 	_fputc,
 
-#ifdef ENABLE_FILE
 	/* FILE */
 	_file_open,
 	_file_read,
@@ -821,12 +829,13 @@ static builtin_ptr _builtins[] PROGMEM =
 	_file_write,
 	_file_seek,
 	_file_tell,
-#endif
 
 	_millis,
 
 	_rect,
-	_color
+	_color,
+	_update,
+	_hsl_to_rgb
 };
 
 static const char _identifiers[] PROGMEM =
@@ -856,7 +865,6 @@ static const char _identifiers[] PROGMEM =
 	"hs\0"
 	"ls\0"
 
-#ifdef ENABLE_FLOAT
 	/* FLOAT */
 	"itf\0"
 	"fti\0"
@@ -890,9 +898,7 @@ static const char _identifiers[] PROGMEM =
 	"ceil\0"
 	"floor\0"
 	"round\0"
-#endif
 
-#ifdef ENABLE_CHAR
 	/* CHAR */
 	"isupper\0"
 	"islower\0"
@@ -907,7 +913,6 @@ static const char _identifiers[] PROGMEM =
 	"isxdigit\0"
 	"tolower\0"
 	"toupper\0"
-#endif
 
 	/* MEMORY  */
 	"w32\0"
@@ -927,11 +932,9 @@ static const char _identifiers[] PROGMEM =
 	"mchr\0"
 	"mset\0"
 
-#ifdef ENABLE_RANDOM
 	/* RANDOM */
 	"srand\0"
 	"rand\0"
-#endif
 
 	/* IO */
 	"fputs\0"
@@ -941,14 +944,11 @@ static const char _identifiers[] PROGMEM =
 	"fputx\0"
 	"fputxe\0"
 
-#ifdef ENABLE_FLOAT
 	"fputf\0"
 	"fputfe\0"
-#endif
 
 	"fputc\0"
 
-#ifdef ENABLE_FILE
 	/* FILE */
 	"fopen\0"
 	"fread\0"
@@ -956,12 +956,13 @@ static const char _identifiers[] PROGMEM =
 	"fwrite\0"
 	"fseek\0"
 	"ftell\0"
-#endif
 
 	"millis\0"
 
 	"rect\0"
 	"color\0"
+	"update\0"
+	"hsl_to_rgb\0"
 
 	"|";
 
